@@ -8,96 +8,43 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 
-/**
- * Created by nano on 02/10/14.
- */
 public class Acceptor implements Runnable {
 
-    public static final int DEFAULT_PORT = 12121;
-    public static final String DEFAULT_HOST = "0.0.0.0";
-
-    private final int _port;
     private final String _host;
-    private Selector _selector = null;
-    private ServerSocketChannel _serverChannel;
-    private IAcceptListener _acceptListener;
-    private boolean _stopped = false;
+    private final int _port;
 
-    private final boolean _useChannelQueue;
-    private BlockingQueue<SelectionKey> _channelQueue = new LinkedBlockingDeque<SelectionKey>();
-    private Thread _channelHandlerThread;
+    private boolean _stopped = true;
+
+    private Selector _selector = null;
+    private ServerSocketChannel _serverChannel = null;
+    private AcceptListener _listener = null;
 
     public Acceptor(final String host, final int port) {
-        this(host, port, false); // default to not using a channel queue
-    }
-
-    public Acceptor(final String host, final int port, final boolean useChannelQueue) {
-        _host = (host == null) ? DEFAULT_HOST : host;
-        _port = (port == 0) ? DEFAULT_PORT : port;
-        _useChannelQueue = useChannelQueue;
+        _host = host;
+        _port = port;
     }
 
     public void bind() throws IOException {
-        if(_selector == null)
+        if(_selector == null) {
             _selector = Selector.open();
-        if(_serverChannel == null)
+        }
+        if(_serverChannel == null) {
             _serverChannel = ServerSocketChannel.open();
+        }
+
         _serverChannel.configureBlocking(false);
         _serverChannel.socket().bind(new InetSocketAddress(_host, _port));
         _serverChannel.register(_selector, SelectionKey.OP_ACCEPT);
     }
 
-    public void stop() {
-        if(_channelHandlerThread != null) {
-            _channelHandlerThread.interrupt();
-        }
-        _stopped = true;
-    }
-
-    public boolean isStopped() {
-        return _stopped;
-    }
-
-    public void setAcceptListener(IAcceptListener listener) {
-        _acceptListener = listener;
-    }
-
-    public IAcceptListener getAcceptListener() {
-        if(_acceptListener == null); // Exception!
-        return _acceptListener;
-    }
-
-    private void prepareStart() {
-        if(_useChannelQueue) {
-            Runnable channelHandler = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        while(!isStopped()) {
-                            SelectionKey key = _channelQueue.poll(100, TimeUnit.MILLISECONDS);
-                            if(key != null) {
-                                handleChannel(key);
-                            }
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            _channelHandlerThread = new Thread(channelHandler, "[Flex] Accept channel handler");
-            _channelHandlerThread.start();
-        }
+    public void start() throws IOException {
+        _stopped = false;
+        bind();
     }
 
     @Override
     public void run() {
-        prepareStart();
         try {
             while(!isStopped()) {
                 _selector.select();
@@ -106,24 +53,37 @@ public class Acceptor implements Runnable {
                 while(iter.hasNext()) {
                     SelectionKey key = iter.next();
                     iter.remove();
-                    if(_useChannelQueue) {
-                        _channelQueue.put(key);
-                    } else {
-                        handleChannel(key);
-                    }
+                    handleAccept(key);
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+            // TODO: Do some logging
             e.printStackTrace();
         }
     }
 
-    public void handleChannel(SelectionKey key) throws IOException {
+    public void stop() {
+        _stopped = true;
+    }
+
+    public boolean isStopped() {
+        return _stopped;
+    }
+
+    private void handleAccept(SelectionKey key) throws IOException {
         ServerSocketChannel serverSocket = (ServerSocketChannel) key.channel();
         SocketChannel channel = serverSocket.accept();
         channel.configureBlocking(false);
-        getAcceptListener().onAccept(channel);
+        getAcceptListener().onAccept(key);
+    }
+
+    public void setAcceptListener(AcceptListener listener) {
+        _listener = listener;
+    }
+
+    public AcceptListener getAcceptListener() {
+        if(_listener != null)
+            return _listener;
+        throw new NullPointerException();
     }
 }

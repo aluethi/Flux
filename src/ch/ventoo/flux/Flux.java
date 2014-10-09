@@ -1,6 +1,6 @@
 package ch.ventoo.flux;
 
-import ch.ventoo.flux.transport.Acceptor;
+import ch.ventoo.flux.transport.AcceptorOld;
 
 import java.io.IOException;
 
@@ -8,7 +8,7 @@ public class Flux {
 
     public static void main(String[] args) {
 
-        Acceptor acceptor = new Acceptor("0.0.0.0", 12345);
+        AcceptorOld acceptor = new AcceptorOld("0.0.0.0", 12345);
         try {
             acceptor.bind();
         } catch (IOException e) {
