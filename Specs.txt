@@ -1,0 +1,49 @@
+Roles: Client, Administrator, System (middleware)
+
+Message and queue handling:
+A client can connect to the message passing system
+1) a client sends a message object to the mom
+2) the deserializes the message and
+
+A client can disconnect from the message passing system
+
+A client can create a new queue
+
+A client can subscribe to an existing queue
+
+A client can delete an existing queue
+
+A client can receive the message that is the oldest in a queue (topmost message)? --> Assuming FIFO
+
+A client can peek into the message that is the oldest in a queue (topmost message)
+
+A client can post a message to a particular queue (if it exists)
+
+A client can post a message to a particular queue (if it exists), that can only be accessed by a specified receiver
+
+A client can query a queue (if it exists) for messages from a particular sender
+
+A client can query for queues where messages for them are waiting (in particular for this client or also for any client?)
+
+
+Metrics:
+The system logs how relevant activities
+
+Msgs received per second
+Msgs sent per second
+
+
+Non-func requirements:
+* Support at least 30 concurrent clients
+* Use multi-threading internally
+* Maintain a connection pool to the lower tier
+* Logging activities for analysis
+
+
+
+((
+    Client handling:
+    A client can register itself at the messaging system and receives a unique identifier
+
+    A client can delete itself from the messaging system
+))

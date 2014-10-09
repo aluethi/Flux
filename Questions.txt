@@ -1,0 +1,31 @@
+Questions
+----------
+
+* What does fixed client mean? Are clients with their clientid already in the database registered and only those registered clients can use the message passing system?
+* Do log-ins and log-outs to the system need to be persisted?
+
+
+Database Layout
+----------------
+
+Message(MessageId, QueueId, SenderId, RecevierId, Timestamp, Message)
+
+Queue(QueueId, Name)
+
+Client(ClientId, Name)
+
+
+Create Queue:
+INSERT INTO Queue VALUES (QueueId, Name);
+
+Delete Queue:
+DELETE FROM Queue WHERE QueueId = "<QueueId>";
+
+
+
+
+
+INSERT INTO Message VALUES (<MessageId>, <QueueId>, <SenderId>, <ReceiverId>, <Timestamp>, <Message>);
+
+SELECT * FROM Messages WHERE ReceiverId != null AND SenderId != '<SenderId>' ORDER BY Timestamp ASC LIMIT 1;
+
