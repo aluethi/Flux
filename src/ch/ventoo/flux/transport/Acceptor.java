@@ -1,5 +1,7 @@
 package ch.ventoo.flux.transport;
 
+import ch.ventoo.flux.profiling.LogWrapper;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -8,8 +10,11 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.logging.Logger;
 
 public class Acceptor implements Runnable {
+
+    private static LogWrapper LOGGER = new LogWrapper(Acceptor.class);
 
     private final String _host;
     private final int _port;
@@ -35,12 +40,14 @@ public class Acceptor implements Runnable {
 
         _serverChannel.configureBlocking(false);
         _serverChannel.socket().bind(new InetSocketAddress(_host, _port));
+        LOGGER.info("Acceptor bound to "+_host+":"+_port);
         _serverChannel.register(_selector, SelectionKey.OP_ACCEPT);
     }
 
     public void start() throws IOException {
         _stopped = false;
         bind();
+        LOGGER.fine("Acceptor started.");
     }
 
     @Override
@@ -48,6 +55,7 @@ public class Acceptor implements Runnable {
         try {
             while(!isStopped()) {
                 _selector.select();
+                LOGGER.info("Selector released.");
                 Set<SelectionKey> selected = _selector.selectedKeys();
                 Iterator<SelectionKey> iter = selected.iterator();
                 while(iter.hasNext()) {
@@ -73,8 +81,9 @@ public class Acceptor implements Runnable {
     private void handleAccept(SelectionKey key) throws IOException {
         ServerSocketChannel serverSocket = (ServerSocketChannel) key.channel();
         SocketChannel channel = serverSocket.accept();
+        LOGGER.info("Accepted client on " + channel.socket().getRemoteSocketAddress());
         channel.configureBlocking(false);
-        getAcceptListener().onAccept(key);
+        getAcceptListener().onAccept(channel);
     }
 
     public void setAcceptListener(AcceptListener listener) {
