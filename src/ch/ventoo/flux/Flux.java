@@ -1,7 +1,7 @@
 package ch.ventoo.flux;
 
-import ch.ventoo.flux.server.ServerMain;
-import ch.ventoo.flux.transport.Server;
+import ch.ventoo.flux.server.Server;
+import ch.ventoo.flux.server.SimpleClientHandlerFactory;
 
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
@@ -24,6 +24,9 @@ public class Flux {
         logger.log(Level.FINE, "Starting server");
 
         Server server = new Server("0.0.0.0", 12345);
+        SimpleClientHandlerFactory handlerFactory = new SimpleClientHandlerFactory();
+        server.setClientHandlerFactory(handlerFactory);
+        server.startHandlers(4);
         try {
             server.bind();
             new Thread(server).start();

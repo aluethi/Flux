@@ -4,11 +4,9 @@ package ch.ventoo.flux.protocol;
  * Created by nano on 09/10/14.
  */
 public interface Protocol {
-    public static interface Commands {
+    public static interface Actions {
         int REGISTER = 1;
         int DEREGISTER = 2;
-        int SIGN_ON = 3;
-        int SIGN_OFF = 4;
 
         int CREATE_QUEUE = 11;
         int DELETE_QUEUE = 12;
@@ -27,5 +25,12 @@ public interface Protocol {
         int MESSAGE = 1;
         int ACK = 2;
         int ERROR = 3;
+    }
+
+    public static interface ErrorCodes {
+        int CLIENT_WITH_ID_EXISTS = 1;
+        int NO_SUCH_CLIENT = 2;
+        int QUEUE_WITH_HANDLE_EXISTS = 3;
+        int NO_SUCH_QUEUE = 4;
     }
 }

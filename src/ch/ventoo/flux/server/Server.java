@@ -1,7 +1,7 @@
-package ch.ventoo.flux.transport;
+package ch.ventoo.flux.server;
 
 import ch.ventoo.flux.profiling.LogWrapper;
-import ch.ventoo.flux.server.ClientHandlerFactory;
+import ch.ventoo.flux.transport.Client;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -19,7 +19,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public class Server implements Runnable {
 
-    private static LogWrapper LOGGER = new LogWrapper(Acceptor.class);
+    private static LogWrapper LOGGER = new LogWrapper(Server.class);
 
     private final String _host;
     private final int _port;
@@ -45,7 +45,7 @@ public class Server implements Runnable {
         if(_clientHandlerFactory != null) {
             _handlerThreads = new Thread[handlers];
             for(int i = 0; i < handlers; i++) {
-                _handlerThreads[i] = new Thread(_clientHandlerFactory.getHandler());
+                _handlerThreads[i] = new Thread(_clientHandlerFactory.createHandler(_clientQueue));
                 _handlerThreads[i].start();
             }
         }
