@@ -59,6 +59,7 @@ public class ProtocolHandler {
         byte[] body = response.getBody();
         int frameSize = body.length;
         Frame frame = new Frame(frameSize);
+        frame.setBody(body);
         return frame;
     }
 }

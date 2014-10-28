@@ -1,5 +1,6 @@
 package ch.ventoo.flux.client;
 
+import ch.ventoo.flux.model.Queue;
 import ch.ventoo.flux.protocol.Command;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.command.DeregisterClientCommand;
@@ -72,6 +73,14 @@ public class MessageServiceImpl {
             throw new RuntimeException(e);
         }
         return true;
+    }
+
+    public Queue createQueue(String queueHandle) {
+        return null;
+    }
+
+    public boolean deleteQueue(String queueHandle) {
+        return false;
     }
 
     private void writeCommand(Command cmd) throws IOException {

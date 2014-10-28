@@ -32,7 +32,7 @@ public class DeregisterClientCommand implements Command {
     @Override
     public byte[] getBody() {
         ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.putInt(Protocol.Actions.DELETE_QUEUE);
+        buffer.putInt(Protocol.Actions.DEREGISTER);
         buffer.putInt(_clientId);
         return buffer.array();
     }

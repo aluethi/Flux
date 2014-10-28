@@ -1,7 +1,5 @@
 package ch.ventoo.flux.transport;
 
-import ch.ventoo.flux.protocol.Response;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;

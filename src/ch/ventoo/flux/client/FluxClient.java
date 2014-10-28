@@ -14,6 +14,7 @@ public class FluxClient {
     public FluxClient(String host, int port) {
         _messageService = new MessageService(host, port);
         _messageService.register(1);
+        _messageService.register(2);
         _messageService.deregister(1);
     }
 

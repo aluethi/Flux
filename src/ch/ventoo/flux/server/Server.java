@@ -110,7 +110,7 @@ public class Server implements Runnable {
         Client client = (Client) key.attachment();
 
         int interestOps = key.interestOps();
-        key.interestOps(interestOps & ~SelectionKey.OP_READ);
+        //key.interestOps(interestOps & ~SelectionKey.OP_READ);
 
         try {
             int readSize = 0;

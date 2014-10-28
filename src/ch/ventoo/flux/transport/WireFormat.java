@@ -1,13 +1,5 @@
 package ch.ventoo.flux.transport;
 
-import ch.ventoo.flux.protocol.Response;
-import ch.ventoo.flux.util.NIOInputStream;
-import ch.ventoo.flux.util.NIOOutputStream;
-
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
