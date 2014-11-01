@@ -10,7 +10,6 @@ import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.store.PostgresStore;
 import ch.ventoo.flux.store.pgsql.PgConnectionPool;
-import ch.ventoo.flux.transport.Frame;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -20,7 +19,7 @@ import java.sql.Date;
 /**
  * Created by nano on 22/10/14.
  */
-public class EnqueueMessageCommand implements Command {
+public class EnqueueMessageCommand extends Command {
 
     private DataInputStream _stream;
     private String _queueHandle;
@@ -36,6 +35,11 @@ public class EnqueueMessageCommand implements Command {
     }
 
     @Override
+    public int getType() {
+        return Protocol.Actions.ENQUEUE_MESSAGE;
+    }
+
+    @Override
     public byte[] getBody() {
         Date timestamp = _message.getTimestamp();
         String dateString = timestamp.toString(); // TODO: correct formating
@@ -47,7 +51,7 @@ public class EnqueueMessageCommand implements Command {
         int queueHandleLength = _queueHandle.getBytes().length;
 
         ByteBuffer buffer = ByteBuffer.allocate(7 * 4 + dateLength + contentLength + queueHandleLength);
-        buffer.putInt(Protocol.Actions.ENQUEUE_MESSAGE);
+        buffer.putInt(getType());
         buffer.putInt(queueHandleLength);
         buffer.put(_queueHandle.getBytes());
 

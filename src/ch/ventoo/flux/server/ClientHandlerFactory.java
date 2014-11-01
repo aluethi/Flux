@@ -1,5 +1,6 @@
 package ch.ventoo.flux.server;
 
+import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.transport.Client;
 
 import java.util.concurrent.BlockingQueue;

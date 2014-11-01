@@ -1,6 +1,8 @@
 package ch.ventoo.flux.server;
 
+import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.profiling.LogWrapper;
+import ch.ventoo.flux.profiling.Timing;
 import ch.ventoo.flux.protocol.Command;
 import ch.ventoo.flux.protocol.ProtocolHandler;
 import ch.ventoo.flux.protocol.Response;
@@ -18,32 +20,43 @@ public class SimpleClientHandler implements ClientHandler {
     private static LogWrapper LOGGER = new LogWrapper(Server.class);
 
     private BlockingQueue<Client> _clientQueue = null;
+    private Timing _timing;
     private boolean _stopped = false;
 
     @Override
-    public void init(BlockingQueue<Client> clientQueue) {
+    public void init(BlockingQueue<Client> clientQueue, BenchLogger log) {
         _clientQueue = clientQueue;
+        _timing = new Timing(log);
     }
 
     @Override
     public void run() {
         while(!isStopped()) {
+            _timing.enterRegion(Timing.Region.WAITING);
             Client client = getNextClient();
-            LOGGER.info("Reading frame...");
-            Frame frame = client.readFrame();
+            _timing.enterRegion(Timing.Region.MARSHALLING);
+            Frame frame = null;
+            try {
+                frame = client.readFrame();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             if(frame != null) {
-                LOGGER.info("Parsing frame...");
-                Command command = ProtocolHandler.parseFrame(frame);
-                LOGGER.info("Executing command...");
+                Command command = ProtocolHandler.parseCommand(frame);
                 Response response = null;
+                _timing.enterRegion(Timing.Region.DATABASE);
                 try {
                     response = command.execute();
                 } catch (IOException e) {
                     e.printStackTrace(); // TODO: Log
                 }
-                LOGGER.info("Writing response...");
-                Frame responseFrame = ProtocolHandler.parseResponse(response);
-                client.writeFrame(responseFrame);
+                _timing.enterRegion(Timing.Region.RESPONSE);
+                Frame responseFrame = ProtocolHandler.prepareResponse(response);
+                try {
+                    client.writeFrame(responseFrame);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -63,10 +76,6 @@ public class SimpleClientHandler implements ClientHandler {
             }
         }
         return client;
-    }
-
-    public void handleFrame() {
-
     }
 
 }

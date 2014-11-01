@@ -1,6 +1,7 @@
 package ch.ventoo.flux.protocol;
 
 import ch.ventoo.flux.protocol.command.*;
+import ch.ventoo.flux.protocol.response.*;
 import ch.ventoo.flux.transport.Frame;
 
 import java.io.ByteArrayInputStream;
@@ -12,17 +13,13 @@ import java.io.IOException;
  */
 public class ProtocolHandler {
 
-    public Response handle(Frame command) {
-        return null;
-    }
-
-    public static Command parseFrame(Frame frame) {
+    public static Command parseCommand(Frame frame) {
         DataInputStream stream = new DataInputStream(new ByteArrayInputStream(frame.getBody()));
         int action = 0;
         try {
             action = stream.readInt();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // TODO
         }
         switch(action) {
             case Protocol.Actions.REGISTER:
@@ -55,11 +52,44 @@ public class ProtocolHandler {
         }
     }
 
-    public static Frame parseResponse(Response response) {
+    public static Frame prepareResponse(Response response) {
         byte[] body = response.getBody();
         int frameSize = body.length;
-        Frame frame = new Frame(frameSize);
-        frame.setBody(body);
+        Frame frame = new Frame(frameSize, body);
         return frame;
+    }
+
+    public static Response parseResponse(Frame frame) {
+        DataInputStream stream = new DataInputStream(new ByteArrayInputStream(frame.getBody()));
+        int type = 0;
+        try {
+            type = stream.readInt();
+            switch(type) {
+                case Protocol.Responses.ACK:
+                    return new ResponseAck();
+                case Protocol.Responses.ERROR:
+                    Response error = new ResponseError();
+                    error.initFromStream(stream);
+                    return error;
+                case Protocol.Responses.MESSAGE:
+                    Response message = new ResponseMessage();
+                    message.initFromStream(stream);
+                    return message;
+                case Protocol.Responses.BINARY:
+                    Response binary = new ResponseBinary();
+                    binary.initFromStream(stream);
+                    return binary;
+                case Protocol.Responses.QUEUES:
+                    Response queues = new ResponseQueues();
+                    queues.initFromStream(stream);
+                    return queues;
+                default:
+                    // should never happen
+                    return null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace(); // TODO
+        }
+        return null;
     }
 }

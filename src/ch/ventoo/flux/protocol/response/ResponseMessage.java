@@ -4,6 +4,8 @@ import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.sql.Date;
 
@@ -12,9 +14,13 @@ import java.sql.Date;
  */
 public class ResponseMessage implements Response {
 
-    private final int _id, _senderId, _receiverId, _priority;
-    private final String _content;
-    private final Date _timestamp;
+    private int _id, _senderId, _receiverId, _priority;
+    private String _content;
+    private Date _timestamp;
+
+    public ResponseMessage() {
+        // do nothing
+    }
 
     public ResponseMessage(Message message) {
         this(message.getId(), message.getSender(), message.getReceiver(),
@@ -29,6 +35,29 @@ public class ResponseMessage implements Response {
         _priority = priority;
         _timestamp = timestamp;
         _content = content;
+    }
+
+    @Override
+    public void initFromStream(DataInputStream stream) throws IOException {
+        _id = stream.readInt();
+        _senderId = stream.readInt();
+        _receiverId = stream.readInt();
+        _priority = stream.readInt();
+
+        int dateLength = stream.readInt();
+        byte[] rawDate = new byte[dateLength];
+        stream.read(rawDate);
+        String dateString = new String(rawDate);
+        _timestamp = Date.valueOf(dateString);
+
+        int contentLength = stream.readInt();
+        byte[] rawContent = new byte[contentLength];
+        stream.read(rawContent);
+        _content = new String(rawContent);
+    }
+
+    public Message getMessage() {
+        return new Message(_id, _senderId, _receiverId, _priority, _timestamp, _content);
     }
 
     @Override

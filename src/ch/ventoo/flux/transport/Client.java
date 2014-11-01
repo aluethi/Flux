@@ -42,7 +42,7 @@ public class Client {
         return readBytes;
     }
 
-    public Frame readFrame() {
+    public Frame readFrame() throws IOException {
         Frame frame = _format.unmarshal(_buffer);
         return frame;
     }
@@ -51,9 +51,10 @@ public class Client {
         _channel.write(buffer);
     }
 
-    public void writeFrame(Frame frame) {
+    public void writeFrame(Frame frame) throws IOException {
         _buffer.clear();
         _format.marshal(_buffer, frame);
+        _buffer.flip();
         try {
             _channel.write(_buffer);
         } catch (IOException e) {

@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
 /**
  * Created by nano on 22/10/14.
  */
-public class DequeueMessageFromSenderCommand implements Command {
+public class DequeueMessageFromSenderCommand extends Command {
 
     private DataInputStream _stream;
     private int _senderId;
@@ -34,10 +34,15 @@ public class DequeueMessageFromSenderCommand implements Command {
     }
 
     @Override
+    public int getType() {
+        return Protocol.Actions.DEQUEUE_MESSAGE_FROM_SENDER;
+    }
+
+    @Override
     public byte[] getBody() {
         int length = _queueHandle.getBytes().length;
         ByteBuffer buffer = ByteBuffer.allocate(length + 8);
-        buffer.putInt(Protocol.Actions.DEQUEUE_MESSAGE_FROM_SENDER);
+        buffer.putInt(getType());
         buffer.putInt(length);
         buffer.put(_queueHandle.getBytes());
         buffer.putInt(_senderId);

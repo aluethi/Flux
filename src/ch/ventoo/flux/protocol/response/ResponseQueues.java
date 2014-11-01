@@ -3,18 +3,39 @@ package ch.ventoo.flux.protocol.response;
 import ch.ventoo.flux.model.Queue;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
+import ch.ventoo.flux.util.StringUtil;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Date;
 
 /**
  * Created by nano on 28/10/14.
  */
 public class ResponseQueues implements Response {
 
-    private final Queue[] _queues;
+    private Queue[] _queues;
+
+    public ResponseQueues() {
+        // do nothing
+    }
 
     public ResponseQueues(Queue[] queues) {
         _queues = queues;
+    }
+
+    @Override
+    public void initFromStream(DataInputStream stream) throws IOException {
+        int queueCount = stream.readInt();
+        _queues = new Queue[queueCount];
+        for(int i = 0; i < queueCount; i++) {
+            int id = stream.readInt();
+            String queueHandle = StringUtil.readStringFromStream(stream);
+            String dateString = StringUtil.readStringFromStream(stream);
+            Date date = Date.valueOf(dateString);
+            _queues[i] = new Queue(id, queueHandle, date);
+        }
     }
 
     @Override

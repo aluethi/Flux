@@ -1,5 +1,6 @@
 package ch.ventoo.flux;
 
+import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.server.Server;
 import ch.ventoo.flux.server.SimpleClientHandlerFactory;
 
@@ -23,8 +24,9 @@ public class Flux {
 
         logger.log(Level.FINE, "Starting server");
 
+        BenchLogger log = new BenchLogger("flux-server");
         Server server = new Server("0.0.0.0", 12345);
-        SimpleClientHandlerFactory handlerFactory = new SimpleClientHandlerFactory();
+        SimpleClientHandlerFactory handlerFactory = new SimpleClientHandlerFactory(log);
         server.setClientHandlerFactory(handlerFactory);
         server.startHandlers(4);
         try {

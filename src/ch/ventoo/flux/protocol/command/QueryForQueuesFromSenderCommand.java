@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 /**
  * Created by nano on 22/10/14.
  */
-public class QueryForQueuesFromSenderCommand implements Command {
+public class QueryForQueuesFromSenderCommand extends Command {
 
     private DataInputStream _stream;
     private int _senderId;
@@ -29,9 +29,14 @@ public class QueryForQueuesFromSenderCommand implements Command {
     }
 
     @Override
+    public int getType() {
+        return Protocol.Actions.QUERY_FOR_QUEUES_FROM_SENDER;
+    }
+
+    @Override
     public byte[] getBody() {
         ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.putInt(Protocol.Actions.QUERY_FOR_QUEUES_FROM_SENDER);
+        buffer.putInt(getType());
         buffer.putInt(_senderId);
         return buffer.array();
     }

@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 /**
  * Created by nano on 22/10/14.
  */
-public class DeleteQueueCommand implements Command {
+public class DeleteQueueCommand extends Command {
 
     private DataInputStream _stream;
     private String _queueHandle;
@@ -30,10 +30,15 @@ public class DeleteQueueCommand implements Command {
     }
 
     @Override
+    public int getType() {
+        return Protocol.Actions.DELETE_QUEUE;
+    }
+
+    @Override
     public byte[] getBody() {
         int length = _queueHandle.getBytes().length;
         ByteBuffer buffer = ByteBuffer.allocate(length + 8);
-        buffer.putInt(Protocol.Actions.DELETE_QUEUE);
+        buffer.putInt(getType());
         buffer.putInt(length);
         buffer.put(_queueHandle.getBytes());
         return buffer.array();

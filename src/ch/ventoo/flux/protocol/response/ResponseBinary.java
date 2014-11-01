@@ -3,6 +3,8 @@ package ch.ventoo.flux.protocol.response;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -10,10 +12,17 @@ import java.nio.ByteBuffer;
  */
 public class ResponseBinary implements Response {
 
-    private final byte _state;
+    private byte _state;
+
+    public ResponseBinary() { }
 
     public ResponseBinary(boolean state) {
         _state = (byte)(state ? 1 : 0);
+    }
+
+    @Override
+    public void initFromStream(DataInputStream stream) throws IOException {
+        _state = stream.readByte();
     }
 
     @Override
@@ -29,7 +38,7 @@ public class ResponseBinary implements Response {
     public byte[] getBody() {
         ByteBuffer buffer = ByteBuffer.allocate(5);
         buffer.putInt(getType());
-        buffer.put((byte)(getState() ? 1 : 0));
+        buffer.put((byte) (getState() ? 1 : 0));
         return buffer.array();
     }
 }

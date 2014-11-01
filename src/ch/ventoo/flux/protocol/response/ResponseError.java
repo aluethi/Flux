@@ -3,6 +3,8 @@ package ch.ventoo.flux.protocol.response;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -10,10 +12,17 @@ import java.nio.ByteBuffer;
  */
 public class ResponseError implements Response {
 
-    private final int _errorCode;
+    private int _errorCode;
+
+    public ResponseError() { }
 
     public ResponseError(int errorCode) {
         _errorCode = errorCode;
+    }
+
+    @Override
+    public void initFromStream(DataInputStream stream) throws IOException {
+        _errorCode = stream.readInt();
     }
 
     @Override

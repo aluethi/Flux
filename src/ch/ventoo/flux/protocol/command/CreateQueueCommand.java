@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 /**
  * Created by nano on 22/10/14.
  */
-public class CreateQueueCommand implements Command {
+public class CreateQueueCommand extends Command {
 
     private DataInputStream _stream;
     private String _queueHandle;
@@ -30,10 +30,15 @@ public class CreateQueueCommand implements Command {
     }
 
     @Override
+    public int getType() {
+        return Protocol.Actions.CREATE_QUEUE;
+    }
+
+    @Override
     public byte[] getBody() {
         int length = _queueHandle.getBytes().length;
         ByteBuffer buffer = ByteBuffer.allocate(length + 8);
-        buffer.putInt(Protocol.Actions.CREATE_QUEUE);
+        buffer.putInt(getType());
         buffer.putInt(length);
         buffer.put(_queueHandle.getBytes());
         return buffer.array();
@@ -50,7 +55,7 @@ public class CreateQueueCommand implements Command {
             store.createQueue(_queueHandle);
             return new ResponseAck();
         } catch (DuplicateQueueException e) {
-            return new ResponseError(Protocol.ErrorCodes.QUEUE_WITH_HANDLE_EXISTS);
+            return new ResponseError(Protocol.ErrorCodes.DUPLICATE_QUEUE);
         }
     }
 }

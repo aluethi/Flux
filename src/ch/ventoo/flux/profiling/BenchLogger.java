@@ -16,13 +16,19 @@ public class BenchLogger {
     private static LogWrapper LOG = new LogWrapper(BenchLogger.class);
     private static String EXECUTION_ID;
 
-    private static BenchLogger INSTANCE = new BenchLogger();
+    //private static BenchLogger INSTANCE = new BenchLogger();
     private static String DELIMITER = "\t";
 
     private BufferedWriter _logWriter;
+    private String _name;
 
     public static void setExecutionId(String executionId) {
         EXECUTION_ID = executionId;
+    }
+
+    public BenchLogger(String name) {
+        _name = name;
+        openLogFile();
     }
 
     public void openLogFile() {
@@ -78,6 +84,5 @@ public class BenchLogger {
 
     public void finalize() throws Throwable {
         closeFile();
-        super.finalize();
     }
 }

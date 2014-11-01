@@ -9,16 +9,13 @@ public class Frame {
     private final int _size;
     private byte[] _body;
 
-    public Frame(int size) {
+    public Frame(int size, byte[] body) {
         _size = size;
+        _body = body;
     }
 
     public int getSize() {
         return _size;
-    }
-
-    public void setBody(byte[] body) {
-        this._body = body;
     }
 
     public byte[] getBody() {

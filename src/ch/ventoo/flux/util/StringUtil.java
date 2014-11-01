@@ -1,5 +1,8 @@
 package ch.ventoo.flux.util;
 
+import java.io.DataInputStream;
+import java.io.IOException;
+
 /**
  * Created by nano on 12/10/14.
  */
@@ -19,6 +22,13 @@ public class StringUtil {
             return sb.toString();
         }
         return "";
+    }
+
+    public static String readStringFromStream(DataInputStream stream) throws IOException {
+        int length = stream.readInt();
+        byte[] raw = new byte[length];
+        stream.read(raw);
+        return new String(raw);
     }
 
 }

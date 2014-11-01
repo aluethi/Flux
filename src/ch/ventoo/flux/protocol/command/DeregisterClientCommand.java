@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 /**
  * Created by nano on 22/10/14.
  */
-public class DeregisterClientCommand implements Command {
+public class DeregisterClientCommand extends Command {
 
     private DataInputStream _stream;
     private int _clientId;
@@ -30,9 +30,14 @@ public class DeregisterClientCommand implements Command {
     }
 
     @Override
+    public int getType() {
+        return Protocol.Actions.DEREGISTER;
+    }
+
+    @Override
     public byte[] getBody() {
         ByteBuffer buffer = ByteBuffer.allocate(8);
-        buffer.putInt(Protocol.Actions.DEREGISTER);
+        buffer.putInt(getType());
         buffer.putInt(_clientId);
         return buffer.array();
     }
