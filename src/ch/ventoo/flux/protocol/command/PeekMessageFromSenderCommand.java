@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to receive a message from a queue given a specific sender without removing it from the queue.
  */
 public class PeekMessageFromSenderCommand extends Command {
 

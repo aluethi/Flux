@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 31/10/14.
+ * Command to ping the message passing system. Used to measure RTT.
  */
 public class PingCommand extends Command {
 

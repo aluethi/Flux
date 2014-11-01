@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 28/10/14.
+ * Response that returns a binary state.
  */
 public class ResponseBinary implements Response {
 

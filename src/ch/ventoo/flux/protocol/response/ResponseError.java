@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 27/10/14.
+ * Response that returns a specific error code.
  */
 public class ResponseError implements Response {
 

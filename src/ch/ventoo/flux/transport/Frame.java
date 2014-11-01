@@ -1,9 +1,8 @@
 package ch.ventoo.flux.transport;
 
-import java.nio.ByteBuffer;
-
 /**
- * Created by nano on 18/10/14.
+ * A Frame is the basic building block of the network communication and protocols are built on top of it.
+ * It contains a leading body size (int) as header and a rest frame body.
  */
 public class Frame {
     private final int _size;

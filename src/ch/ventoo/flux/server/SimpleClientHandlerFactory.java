@@ -6,7 +6,7 @@ import ch.ventoo.flux.transport.Client;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Created by nano on 18/10/14.
+ * A simple implementation of the ClientHandlerFactory that initializes ClientHandlers with a BenchLogger for benchmarking.
  */
 public class SimpleClientHandlerFactory implements ClientHandlerFactory {
 
@@ -16,6 +16,11 @@ public class SimpleClientHandlerFactory implements ClientHandlerFactory {
         _log = log;
     }
 
+    /**
+     * Returns a newly created SimpleClientHandler that is initialized with the clientQueue and a BenchLogger.
+     * @param clientQueue
+     * @return
+     */
     @Override
     public ClientHandler createHandler(BlockingQueue<Client> clientQueue) {
         SimpleClientHandler clientHandler = new SimpleClientHandler();

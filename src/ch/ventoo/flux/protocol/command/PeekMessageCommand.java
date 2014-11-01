@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to retrieve a message from a queue without removing it from the queue.
  */
 public class PeekMessageCommand extends Command {
 

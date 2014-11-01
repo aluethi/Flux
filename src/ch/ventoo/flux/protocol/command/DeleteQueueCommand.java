@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to delete a queue given a queue handle.
  */
 public class DeleteQueueCommand extends Command {
 

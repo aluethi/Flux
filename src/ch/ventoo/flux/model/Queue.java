@@ -3,7 +3,7 @@ package ch.ventoo.flux.model;
 import java.sql.Date;
 
 /**
- * Created by nano on 18/10/14.
+ * Model class for a queue with setters and getters.
  */
 public class Queue {
     private int _id;

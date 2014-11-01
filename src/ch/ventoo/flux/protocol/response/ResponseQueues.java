@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.sql.Date;
 
 /**
- * Created by nano on 28/10/14.
+ * Response that returns a list of queues.
  */
 public class ResponseQueues implements Response {
 

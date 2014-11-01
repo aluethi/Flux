@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 27/10/14.
+ * Response that acknowledges a sent command.
  */
 public class ResponseAck implements Response {
 

@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to check whether a message queue is empty.
  */
 public class IsQueueEmptyCommand extends Command {
 

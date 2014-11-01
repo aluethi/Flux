@@ -1,0 +1,10 @@
+# Database
+db.server.name: localhost
+db.database.name: coffeemq
+db.user: coffeemquser
+db.password: coffeemqrules
+db.pool.max: 10
+db.pool.initial: 10
+mw.pool.max: 10
+net.iface.ip: 0.0.0.0
+net.iface.port: 5555

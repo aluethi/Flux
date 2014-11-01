@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to dequeue a message from a specific sender from the message passing system.
  */
 public class DequeueMessageFromSenderCommand extends Command {
 

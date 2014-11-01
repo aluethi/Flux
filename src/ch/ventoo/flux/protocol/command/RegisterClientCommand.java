@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to register a client at the message passing system.
  */
 public class RegisterClientCommand extends Command {
 

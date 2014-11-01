@@ -3,7 +3,7 @@ package ch.ventoo.flux.model;
 import java.sql.Date;
 
 /**
- * Created by nano on 18/10/14.
+ * Model class for a message with getters and setters for its values.
  */
 public class Message {
     private int _id;

@@ -4,7 +4,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Created by nano on 12/10/14.
+ * Logger wrapper class for convenience.
  */
 public class LogWrapper {
     private Logger _logger;

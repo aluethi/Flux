@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Created by nano on 19/10/14.
+ * Connection pool for use by the PostgresStore data access object.
  */
 public class PgConnectionPool {
 
@@ -21,6 +21,9 @@ public class PgConnectionPool {
         return INSTANCE_;
     }
 
+    /**
+     * Initializes the connection pool.
+     */
     // TODO: Make configurable
     private PgConnectionPool() {
         _source = new PGPoolingDataSource();
@@ -32,6 +35,10 @@ public class PgConnectionPool {
         _source.setInitialConnections(10);
     }
 
+    /**
+     * Returns a connection to the database.
+     * @return
+     */
     public synchronized Connection getConnection() {
         Connection con = null;
         try {

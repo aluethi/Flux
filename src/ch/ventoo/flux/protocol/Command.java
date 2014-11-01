@@ -5,7 +5,7 @@ import ch.ventoo.flux.transport.Frame;
 import java.io.IOException;
 
 /**
- * Created by nano on 22/10/14.
+ * Abstract command class. Commands implement the protocol between client and middleware.
  */
 public abstract class Command {
 

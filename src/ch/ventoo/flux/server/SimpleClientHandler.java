@@ -13,22 +13,31 @@ import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Created by nano on 18/10/14.
+ * A simple implementation of the ClientHandler interface that uses a BenchLogger and the Timing class to
+ * create timed log entries for benchmarking.
  */
 public class SimpleClientHandler implements ClientHandler {
 
-    private static LogWrapper LOGGER = new LogWrapper(Server.class);
+    private static LogWrapper LOGGER = new LogWrapper(SimpleClientHandler.class);
 
     private BlockingQueue<Client> _clientQueue = null;
     private Timing _timing;
     private boolean _stopped = false;
 
+    /**
+     * Initializes the client handler with the clientQueue and a BenchLogger.
+     * @param clientQueue
+     * @param log
+     */
     @Override
     public void init(BlockingQueue<Client> clientQueue, BenchLogger log) {
         _clientQueue = clientQueue;
         _timing = new Timing(log);
     }
 
+    /**
+     * Run loop that processes client connections and measures the time used for each step.
+     */
     @Override
     public void run() {
         while(!isStopped()) {
@@ -39,7 +48,7 @@ public class SimpleClientHandler implements ClientHandler {
             try {
                 frame = client.readFrame();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.warning("Could not read frame from client.");
             }
             if(frame != null) {
                 Command command = ProtocolHandler.parseCommand(frame);
@@ -48,14 +57,15 @@ public class SimpleClientHandler implements ClientHandler {
                 try {
                     response = command.execute();
                 } catch (IOException e) {
-                    e.printStackTrace(); // TODO: Log
+                    LOGGER.severe("Could not execute command.");
+                    throw new RuntimeException(e);
                 }
                 _timing.enterRegion(Timing.Region.RESPONSE);
                 Frame responseFrame = ProtocolHandler.prepareResponse(response);
                 try {
                     client.writeFrame(responseFrame);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.warning("Could not write frame to client.");
                 }
             }
         }
@@ -71,8 +81,7 @@ public class SimpleClientHandler implements ClientHandler {
             try {
                 client = _clientQueue.take();
             } catch (InterruptedException e) {
-                e.printStackTrace();
-                continue;
+                LOGGER.warning("Thread was interrupted while waiting for a new queue.");
             }
         }
         return client;

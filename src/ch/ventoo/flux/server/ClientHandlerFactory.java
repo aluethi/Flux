@@ -1,12 +1,11 @@
 package ch.ventoo.flux.server;
 
-import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.transport.Client;
 
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Created by nano on 15/10/14.
+ * A factory interface that is used to implement a factory returning ClientHandlers.
  */
 public interface ClientHandlerFactory {
 

@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to query for queues with messages from a specific sender.
  */
 public class QueryForQueuesFromSenderCommand extends Command {
 

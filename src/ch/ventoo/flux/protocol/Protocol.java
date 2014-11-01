@@ -1,7 +1,7 @@
 package ch.ventoo.flux.protocol;
 
 /**
- * Created by nano on 09/10/14.
+ * Constants used within the protocol.
  */
 public interface Protocol {
     public static interface Actions {

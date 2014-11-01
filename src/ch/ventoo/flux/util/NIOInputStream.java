@@ -4,7 +4,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 25/10/14.
+ * NIO ByteBuffer InputStream wrapper. (Inspired by Apache Active MQ)
+ * Used to read from a ByteBuffer like it was a stream.
  */
 public class NIOInputStream extends InputStream {
     private final ByteBuffer _input;

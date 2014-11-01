@@ -15,7 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Created by nano on 15/10/14.
+ * Main server class of the Flux message passing system.
  */
 public class Server implements Runnable {
 
@@ -37,10 +37,18 @@ public class Server implements Runnable {
         _port = port;
     }
 
+    /**
+     * Sets the client handler factory to use. Can be different for e.g. different protocols.
+     * @param clientHandlerFactory
+     */
     public void setClientHandlerFactory(ClientHandlerFactory clientHandlerFactory) {
         _clientHandlerFactory = clientHandlerFactory;
     }
 
+    /**
+     * Starts the given number of client handlers.
+     * @param handlers
+     */
     public void startHandlers(int handlers) {
         if(_clientHandlerFactory != null) {
             _handlerThreads = new Thread[handlers];
@@ -51,6 +59,10 @@ public class Server implements Runnable {
         }
     }
 
+    /**
+     * Bind the Flux server to the given host interface and port.
+     * @throws IOException
+     */
     public void bind() throws IOException {
         if(_selector == null) {
             _selector = Selector.open();
@@ -65,6 +77,9 @@ public class Server implements Runnable {
         LOGGER.info("Bound server to " + _host + ":" + _port);
     }
 
+    /**
+     * Run loop that handles acceptions and reads from the network interface.
+     */
     @Override
     public void run() {
         try {
@@ -84,7 +99,8 @@ public class Server implements Runnable {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.severe("Error while executing select on the server socket channel.");
+            throw new RuntimeException(e);
         }
     }
 
@@ -96,8 +112,12 @@ public class Server implements Runnable {
         return _stopped;
     }
 
+    /**
+     * Handles an accept on the network interface.
+     * @param key
+     * @throws IOException
+     */
     protected void handleAccept(SelectionKey key) throws IOException {
-        LOGGER.info("Handling accept");
         ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
         SocketChannel channel = serverChannel.accept();
         channel.configureBlocking(false);
@@ -105,13 +125,12 @@ public class Server implements Runnable {
         channel.register(_selector, SelectionKey.OP_READ, con);
     }
 
+    /**
+     * Handles a read on the network interface.
+     * @param key
+     */
     protected void handleRead(SelectionKey key) {
-        LOGGER.info("Handling read");
         Client client = (Client) key.attachment();
-
-        int interestOps = key.interestOps();
-        //key.interestOps(interestOps & ~SelectionKey.OP_READ);
-
         try {
             int readSize = 0;
             readSize = client.read();
@@ -121,9 +140,9 @@ public class Server implements Runnable {
                 client.shutdown();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.warning("Error while reading from the client.");
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.severe("Interruption while putting a client into the client queue.");
         }
     }
 }

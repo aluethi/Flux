@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to dequeue a message from the message passing system.
  */
 public class DequeueMessageCommand extends Command {
 

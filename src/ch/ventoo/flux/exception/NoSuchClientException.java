@@ -1,7 +1,7 @@
 package ch.ventoo.flux.exception;
 
 /**
- * Created by nano on 27/10/14.
+ * No such client was found.
  */
 public class NoSuchClientException extends Exception {
 }

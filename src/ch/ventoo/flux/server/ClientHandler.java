@@ -6,7 +6,7 @@ import ch.ventoo.flux.transport.Client;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * Created by nano on 15/10/14.
+ * Interface to implement a client handler.
  */
 public interface ClientHandler extends Runnable {
 

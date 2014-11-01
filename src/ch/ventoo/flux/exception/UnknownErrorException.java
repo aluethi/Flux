@@ -1,7 +1,7 @@
 package ch.ventoo.flux.exception;
 
 /**
- * Created by nano on 30/10/14.
+ * An unknown error occurred.
  */
 public class UnknownErrorException extends Exception {
 }

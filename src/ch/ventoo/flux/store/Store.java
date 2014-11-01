@@ -10,7 +10,7 @@ import ch.ventoo.flux.model.Queue;
 import java.sql.SQLException;
 
 /**
- * Created by nano on 25/09/14.
+ * Store interface to abstract a specific store (e.g. database) from the rest of the system.
  */
 public interface Store {
 

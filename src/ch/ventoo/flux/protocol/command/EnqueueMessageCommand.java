@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
 import java.sql.Date;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to enqueue a new message into the message passing system.
  */
 public class EnqueueMessageCommand extends Command {
 

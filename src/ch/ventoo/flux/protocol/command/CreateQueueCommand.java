@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by nano on 22/10/14.
+ * Command to create a new queue with a given queue handle.
  */
 public class CreateQueueCommand extends Command {
 

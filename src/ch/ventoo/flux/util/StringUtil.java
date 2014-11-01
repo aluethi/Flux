@@ -4,7 +4,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 
 /**
- * Created by nano on 12/10/14.
+ * String utilities.
  */
 public class StringUtil {
 
@@ -12,6 +12,12 @@ public class StringUtil {
 
     }
 
+    /**
+     * Join multiple strings to one large string delimited by a given delimiter.
+     * @param delim
+     * @param params
+     * @return
+     */
     public static String join(String delim, Object ... params) {
         if(params.length > 0) {
             StringBuilder sb = new StringBuilder();
@@ -24,6 +30,12 @@ public class StringUtil {
         return "";
     }
 
+    /**
+     * Read a string from the network (leading size as int and following byte array as string content).
+     * @param stream
+     * @return
+     * @throws IOException
+     */
     public static String readStringFromStream(DataInputStream stream) throws IOException {
         int length = stream.readInt();
         byte[] raw = new byte[length];

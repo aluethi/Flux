@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.sql.Date;
 
 /**
- * Created by nano on 27/10/14.
+ * Response that returns a message from the message passing system.
  */
 public class ResponseMessage implements Response {
 
