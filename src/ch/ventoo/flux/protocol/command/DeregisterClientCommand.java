@@ -7,11 +7,13 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.store.PostgresStore;
+import ch.ventoo.flux.store.StoreUtil;
 import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Connection;
 
 /**
  * Command to de-register a client from the message passing system.
@@ -45,12 +47,15 @@ public class DeregisterClientCommand extends Command {
     @Override
     public Response execute() throws IOException {
         _clientId = _stream.readInt();
-        PostgresStore store = new PostgresStore(PgConnectionPool.getInstance().getConnection());
+        Connection con = PgConnectionPool.getInstance().getConnection();
+        PostgresStore store = new PostgresStore(con);
         try {
             store.deregisterClient(_clientId);
             return new ResponseAck();
         } catch (NoSuchClientException e) {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
+        } finally {
+            StoreUtil.closeQuietly(con);
         }
     }
 }

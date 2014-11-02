@@ -3,6 +3,7 @@ package ch.ventoo.flux.protocol.response;
 import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
+import ch.ventoo.flux.store.StoreUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class ResponseMessage implements Response {
         byte[] rawDate = new byte[dateLength];
         stream.read(rawDate);
         String dateString = new String(rawDate);
-        _timestamp = Date.valueOf(dateString);
+        _timestamp = StoreUtil.convertStringToDate(dateString);
 
         int contentLength = stream.readInt();
         byte[] rawContent = new byte[contentLength];
@@ -62,7 +63,7 @@ public class ResponseMessage implements Response {
 
     @Override
     public int getType() {
-        return Protocol.Responses.ERROR;
+        return Protocol.Responses.MESSAGE;
     }
 
     public int getId() {
@@ -92,7 +93,7 @@ public class ResponseMessage implements Response {
     @Override
     public byte[] getBody() {
         Date timestamp = getTimestamp();
-        String dateString = timestamp.toString(); // TODO: correct formating
+        String dateString = StoreUtil.convertDateToString(timestamp);
         int dateLength = dateString.getBytes().length;
 
         String content = getContent();

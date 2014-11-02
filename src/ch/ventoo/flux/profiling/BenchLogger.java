@@ -6,7 +6,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Benchmark logger used to log timed events in combination with the Timing class.
@@ -14,16 +15,11 @@ import java.sql.Time;
 public class BenchLogger {
 
     private static LogWrapper LOGGER = new LogWrapper(BenchLogger.class);
-    private static String EXECUTION_ID;
 
     private static String DELIMITER = "\t";
 
     private BufferedWriter _logWriter;
     private String _name;
-
-    public static void setExecutionId(String executionId) {
-        EXECUTION_ID = executionId;
-    }
 
     public BenchLogger(String name) {
         _name = name;
@@ -34,8 +30,9 @@ public class BenchLogger {
      * Opens a log file.
      */
     public void openLogFile() {
-        Time time = new Time(System.currentTimeMillis());
-        String logFilePath = "log/" + _name + "-" + time.toString() + ".log";
+        Date date = new Date(System.currentTimeMillis());
+        String dateString = new SimpleDateFormat("yyyy-MM-dd-HH.mm.ss").format(date);
+        String logFilePath = "log/" + _name + "-" + dateString + ".log";
         init(logFilePath);
     }
 

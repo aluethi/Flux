@@ -9,11 +9,13 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.protocol.response.ResponseMessage;
 import ch.ventoo.flux.store.PostgresStore;
+import ch.ventoo.flux.store.StoreUtil;
 import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Connection;
 
 /**
  * Command to receive a message from a queue given a specific sender without removing it from the queue.
@@ -56,7 +58,8 @@ public class PeekMessageFromSenderCommand extends Command {
         _stream.read(data);
         _queueHandle = new String(data);
         int senderId = _stream.readInt();
-        PostgresStore store = new PostgresStore(PgConnectionPool.getInstance().getConnection());
+        Connection con = PgConnectionPool.getInstance().getConnection();
+        PostgresStore store = new PostgresStore(con);
         try {
             Message message = store.peekMessageFromSender(_queueHandle, _senderId);
             return new ResponseMessage(message);
@@ -64,6 +67,8 @@ public class PeekMessageFromSenderCommand extends Command {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } catch (NoSuchClientException e) {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
+        } finally {
+            StoreUtil.closeQuietly(con);
         }
     }
 }

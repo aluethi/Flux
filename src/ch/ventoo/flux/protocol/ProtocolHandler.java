@@ -56,7 +56,7 @@ public class ProtocolHandler {
                     return new QueryForQueuesFromSenderCommand(stream);
                 default:
                     LOGGER.warning("Received an illegal command.");
-                    return null;
+                    throw new RuntimeException();
             }
         } catch (IOException e) {
             LOGGER.warning("Could not read action from the received frame.");

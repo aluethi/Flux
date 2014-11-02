@@ -9,11 +9,13 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.store.PostgresStore;
+import ch.ventoo.flux.store.StoreUtil;
 import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Connection;
 import java.sql.Date;
 
 /**
@@ -42,7 +44,7 @@ public class EnqueueMessageCommand extends Command {
     @Override
     public byte[] getBody() {
         Date timestamp = _message.getTimestamp();
-        String dateString = timestamp.toString(); // TODO: correct formating
+        String dateString = StoreUtil.convertDateToString(timestamp);
         int dateLength = dateString.getBytes().length;
 
         String content = _message.getContent();
@@ -84,7 +86,7 @@ public class EnqueueMessageCommand extends Command {
         byte[] rawDate = new byte[dateLength];
         _stream.read(rawDate);
         String dateString = new String(rawDate);
-        Date date = Date.valueOf(dateString);
+        Date date = StoreUtil.convertStringToDate(dateString);
 
         int contentLength = _stream.readInt();
         byte[] rawContent = new byte[contentLength];
@@ -93,7 +95,8 @@ public class EnqueueMessageCommand extends Command {
 
         _message = new Message(0, sender, receiver, priority, date, content);
 
-        PostgresStore store = new PostgresStore(PgConnectionPool.getInstance().getConnection());
+        Connection con = PgConnectionPool.getInstance().getConnection();
+        PostgresStore store = new PostgresStore(con);
         try {
             store.enqueueMessage(_queueHandle, _message);
             return new ResponseAck();
@@ -101,6 +104,8 @@ public class EnqueueMessageCommand extends Command {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } catch (NoSuchClientException e) {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
+        } finally {
+            StoreUtil.closeQuietly(con);
         }
     }
 }

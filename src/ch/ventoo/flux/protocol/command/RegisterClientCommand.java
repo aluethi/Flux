@@ -7,11 +7,13 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.store.PostgresStore;
+import ch.ventoo.flux.store.StoreUtil;
 import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Connection;
 
 /**
  * Command to register a client at the message passing system.
@@ -45,12 +47,15 @@ public class RegisterClientCommand extends Command {
     @Override
     public Response execute() throws IOException {
         _clientId = _stream.readInt();
-        PostgresStore store = new PostgresStore(PgConnectionPool.getInstance().getConnection());
+        Connection con = PgConnectionPool.getInstance().getConnection();
+        PostgresStore store = new PostgresStore(con);
         try {
             store.registerClient(_clientId);
             return new ResponseAck();
         } catch (DuplicateClientException e) {
             return new ResponseError(Protocol.ErrorCodes.CLIENT_WITH_ID_EXISTS);
+        } finally {
+            StoreUtil.closeQuietly(con);
         }
     }
 }

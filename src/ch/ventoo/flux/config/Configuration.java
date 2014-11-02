@@ -16,7 +16,7 @@ import java.util.Properties;
  */
 public class Configuration {
 
-    private static String CONFIG_PROPS_FILE = "config.prop";
+    private static String CONFIG_PROPS_FILE = "var/config.properties";
     private static LogWrapper LOGGER = new LogWrapper(Configuration.class);
 
     private static Properties PROPERTIES = new Properties();

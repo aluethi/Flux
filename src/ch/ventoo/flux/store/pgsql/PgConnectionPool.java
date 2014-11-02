@@ -1,5 +1,7 @@
 package ch.ventoo.flux.store.pgsql;
 
+import ch.ventoo.flux.config.Configuration;
+import ch.ventoo.flux.profiling.LogWrapper;
 import org.postgresql.ds.PGPoolingDataSource;
 
 import java.sql.Connection;
@@ -10,29 +12,29 @@ import java.sql.SQLException;
  */
 public class PgConnectionPool {
 
-    private static PgConnectionPool INSTANCE_ = null;
+    private static LogWrapper LOGGER = new LogWrapper(PgConnectionPool.class);
+    private static PgConnectionPool INSTANCE = null;
 
     private PGPoolingDataSource _source;
 
     public static PgConnectionPool getInstance() {
-        if(INSTANCE_ == null) {
-            INSTANCE_ = new PgConnectionPool();
+        if(INSTANCE == null) {
+            INSTANCE = new PgConnectionPool();
         }
-        return INSTANCE_;
+        return INSTANCE;
     }
 
     /**
      * Initializes the connection pool.
      */
-    // TODO: Make configurable
     private PgConnectionPool() {
         _source = new PGPoolingDataSource();
-        _source.setServerName("localhost");
-        _source.setDatabaseName("flux");
-        _source.setUser("nano");
-        _source.setPassword("asdf");
-        _source.setMaxConnections(10);
-        _source.setInitialConnections(10);
+        _source.setServerName(Configuration.getProperty("db.server.name"));
+        _source.setDatabaseName(Configuration.getProperty("db.database.name"));
+        _source.setUser(Configuration.getProperty("db.user"));
+        _source.setPassword(Configuration.getProperty("db.password"));
+        _source.setMaxConnections(Integer.parseInt(Configuration.getProperty("db.pool.max")));
+        _source.setInitialConnections(Integer.parseInt(Configuration.getProperty("db.pool.initial")));
     }
 
     /**
@@ -43,8 +45,9 @@ public class PgConnectionPool {
         Connection con = null;
         try {
             con = _source.getConnection();
-            //con.setAutoCommit(false);
+            con.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         } catch (SQLException e) {
+            LOGGER.severe("Could not retrieve connection from the connection pool.");
             throw new RuntimeException(e);
         }
         return con;

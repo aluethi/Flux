@@ -44,12 +44,7 @@ public class SimpleClientHandler implements ClientHandler {
             _timing.enterRegion(Timing.Region.WAITING);
             Client client = getNextClient();
             _timing.enterRegion(Timing.Region.MARSHALLING);
-            Frame frame = null;
-            try {
-                frame = client.readFrame();
-            } catch (IOException e) {
-                LOGGER.warning("Could not read frame from client.");
-            }
+            Frame frame = client.readFrame();
             if(frame != null) {
                 Command command = ProtocolHandler.parseCommand(frame);
                 Response response = null;

@@ -1,5 +1,6 @@
 package ch.ventoo.flux.server;
 
+import ch.ventoo.flux.config.Configuration;
 import ch.ventoo.flux.profiling.LogWrapper;
 import ch.ventoo.flux.transport.Client;
 
@@ -27,8 +28,7 @@ public class Server implements Runnable {
     private boolean _stopped = false;
     private Selector _selector = null;
     private ServerSocketChannel _serverChannel = null;
-    // TODO: Make type and size of queue configurable
-    private BlockingQueue<Client> _clientQueue = new ArrayBlockingQueue<Client>(1000);
+    private BlockingQueue<Client> _clientQueue = new ArrayBlockingQueue<Client>(Integer.parseInt(Configuration.getProperty("mw.queue.size")));
     private ClientHandlerFactory _clientHandlerFactory = null;
     private Thread _handlerThreads[] = null;
 
@@ -131,16 +131,19 @@ public class Server implements Runnable {
      */
     protected void handleRead(SelectionKey key) {
         Client client = (Client) key.attachment();
+
+        /*int keyOps = key.interestOps();
+        key.interestOps(keyOps & ~SelectionKey.OP_READ);*/
+
         try {
-            int readSize = 0;
-            readSize = client.read();
-            if(readSize > 0) {
+            //int readSize = client.read();
+            //if(readSize > 0) {
                 _clientQueue.put(client);
-            } else {
-                client.shutdown();
-            }
-        } catch (IOException e) {
-            LOGGER.warning("Error while reading from the client.");
+            //} else {
+            //    client.shutdown();
+            //}
+        //} catch (IOException e) {
+        //    LOGGER.warning("Error while reading from the client.");
         } catch (InterruptedException e) {
             LOGGER.severe("Interruption while putting a client into the client queue.");
         }

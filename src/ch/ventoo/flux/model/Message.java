@@ -13,6 +13,14 @@ public class Message {
     private Date _timestamp;
     private String _content;
 
+    public Message(int sender, String content) {
+        this(sender, 0, content);
+    }
+
+    public Message(int sender, int receiver, String content) {
+        this(0, sender, receiver, 0, new Date(new java.util.Date().getTime()), content);
+    }
+
     public Message(int id, int sender, int receiver, int priority, Date timestamp, String content) {
         _id = id;
         _sender = sender;

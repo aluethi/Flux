@@ -7,11 +7,13 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.store.PostgresStore;
+import ch.ventoo.flux.store.StoreUtil;
 import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.Connection;
 
 /**
  * Command to delete a queue given a queue handle.
@@ -50,12 +52,15 @@ public class DeleteQueueCommand extends Command {
         byte[] data = new byte[length];
         _stream.read(data);
         _queueHandle = new String(data);
-        PostgresStore store = new PostgresStore(PgConnectionPool.getInstance().getConnection());
+        Connection con = PgConnectionPool.getInstance().getConnection();
+        PostgresStore store = new PostgresStore(con);
         try {
             store.deleteQueue(_queueHandle);
             return new ResponseAck();
         } catch (NoSuchQueueException e) {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
+        } finally {
+            StoreUtil.closeQuietly(con);
         }
     }
 }
