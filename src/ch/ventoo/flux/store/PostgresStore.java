@@ -400,7 +400,11 @@ public class PostgresStore implements Store {
             rs = stmt.executeQuery();
             rs.next();
             Message m = new Message(rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getInt(5), rs.getDate(6), rs.getString(7));
-            return m;
+            if(m.getId() == 0) {
+                return Message.NO_MESSAGE;
+            } else {
+                return m;
+            }
         } catch (SQLException e) {
             throw e;
         } finally {

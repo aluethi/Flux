@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.SQLException;
 
 /**
  * Command to enqueue a new message into the message passing system.
@@ -96,15 +97,36 @@ public class EnqueueMessageCommand extends Command {
         _message = new Message(0, sender, receiver, priority, date, content);
 
         Connection con = PgConnectionPool.getInstance().getConnection();
+        try {
+            con.setAutoCommit(false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         PostgresStore store = new PostgresStore(con);
         try {
             store.enqueueMessage(_queueHandle, _message);
             return new ResponseAck();
         } catch (NoSuchQueueException e) {
+            try {
+                con.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } catch (NoSuchClientException e) {
+
+            try {
+                con.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
         } finally {
+            try {
+                con.commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             StoreUtil.closeQuietly(con);
         }
     }

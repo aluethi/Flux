@@ -6,6 +6,7 @@ import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.protocol.Command;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
+import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.protocol.response.ResponseMessage;
 import ch.ventoo.flux.store.PostgresStore;
@@ -59,7 +60,11 @@ public class PeekMessageCommand extends Command {
         PostgresStore store = new PostgresStore(con);
         try {
             Message message = store.peekMessage(_queueHandle, _recieverId);
-            return new ResponseMessage(message);
+            if(message == Message.NO_MESSAGE) {
+                return new ResponseAck();
+            } else {
+                return new ResponseMessage(message);
+            }
         } catch (NoSuchQueueException e) {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } catch (NoSuchClientException e) {

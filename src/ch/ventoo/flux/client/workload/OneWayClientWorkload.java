@@ -7,7 +7,8 @@ import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.profiling.LogWrapper;
 
 /**
- * Created by nano on 02/11/14.
+ * The one way client workload just writes messages into a public queue, that other clients can read
+ * and respond to.
  */
 public class OneWayClientWorkload extends Workload {
 

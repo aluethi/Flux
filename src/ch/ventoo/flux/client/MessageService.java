@@ -307,6 +307,8 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
+            } else if (response.getType() == Protocol.Responses.ACK) {
+                return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
@@ -340,6 +342,8 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
+            } else if (response.getType() == Protocol.Responses.ACK) {
+                return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
@@ -372,6 +376,8 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
+            } else if (response.getType() == Protocol.Responses.ACK) {
+                return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
@@ -406,6 +412,8 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
+            } else if (response.getType() == Protocol.Responses.ACK) {
+                return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();

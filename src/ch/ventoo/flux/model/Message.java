@@ -6,6 +6,9 @@ import java.sql.Date;
  * Model class for a message with getters and setters for its values.
  */
 public class Message {
+
+    public static final Message NO_MESSAGE = new Message(0, null);
+
     private int _id;
     private int _sender;
     private int _receiver;
