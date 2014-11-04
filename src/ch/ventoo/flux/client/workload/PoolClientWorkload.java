@@ -15,8 +15,17 @@ public class PoolClientWorkload extends Workload {
 
     @Override
     public void start(MessageService service, String[] args) {
+        int loadSize = 0;
+        if(args.length > 0) {
+            loadSize = Integer.parseInt(args[0]);
+        }
         try {
-            Message m = service.createAnonymousMessage(service.getClientId() + ":1:0");
+            Message m = null;
+            if(loadSize > 2) {
+                m = service.createAnonymousMessage(service.getClientId() + ":1:0/" + generatePayload(loadSize-6));
+            } else {
+                m = service.createAnonymousMessage(service.getClientId() + ":1:0/");
+            }
             service.register();
             while(true) {
                 try {
@@ -49,9 +58,22 @@ public class PoolClientWorkload extends Workload {
                     /* partner is not ready yet. try again. */
                     continue;
                 }
-                String[] splits = m.getContent().split(":");
+                String[] parts = m.getContent().split("/");
+
+                String[] splits = parts[0].split(":");
                 splits[1] = String.valueOf(Integer.parseInt(splits[1]) + 1);
-                m = service.createAnonymousMessage(splits[0] + ":" + splits[1] + ":" + splits[2]);
+                parts[0] = splits[0] + ":" + splits[1] + ":" + splits[2];
+                String content = "";
+                if(parts.length > 1) {
+                    if (loadSize - parts[0].length() - 1 > 0) {
+                        parts[1] = generatePayload(loadSize - parts[0].length() - 1);
+                    }
+                    content = parts[0] + "/" + parts[1];
+                } else {
+                    content = parts[0] + "/";
+                }
+
+                m = service.createAnonymousMessage(content);
 
                 try {
                     service.enqueueMessage(PUT_QUEUE, m);

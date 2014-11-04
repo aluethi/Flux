@@ -17,6 +17,7 @@ public class Client {
     private final SocketChannel _channel;
     private final ByteBuffer _buffer;
     private final WireFormat _format;
+    private Runnable _writeHook = null;
 
     public Client(SocketChannel channel) {
         _channel = channel;
@@ -95,6 +96,13 @@ public class Client {
             LOGGER.warning("There was an exception while writing to the client.");
         }
         _buffer.clear();
+        if(_writeHook != null) {
+            _writeHook.run();
+        }
+    }
+
+    public void setWriteHook(Runnable writeHook) {
+        _writeHook = writeHook;
     }
 
     public void shutdown() {

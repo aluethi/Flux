@@ -16,9 +16,19 @@ public class DialogClientWorkload extends Workload {
 
     @Override
     public void start(MessageService service, String[] args) {
+        int loadSize = 0;
+        if(args.length > 0) {
+            loadSize = Integer.parseInt(args[0]);
+        }
         try {
             int partnerId = service.getClientId() + 1;
-            Message m = service.createDirectedMessage(partnerId, "1-0"), temp;
+
+            Message m = null, temp;
+            if(loadSize > 4) {
+                m = service.createDirectedMessage(partnerId, "1-0/" + generatePayload(loadSize-4));
+            } else {
+                m = service.createDirectedMessage(partnerId, "1-0/");
+            }
             service.register();
             while(true) {
                 try {
@@ -47,9 +57,23 @@ public class DialogClientWorkload extends Workload {
                     /* partner is not ready yet. try again. */
                     continue;
                 }
-                String[] splits = m.getContent().split("-");
+                String[] parts = m.getContent().split("/");
+
+                String[] splits = parts[0].split("-");
                 splits[0] = String.valueOf(Integer.parseInt(splits[0]) + 1);
-                m = service.createDirectedMessage(partnerId, splits[0] + "-" + splits[1]);
+                parts[0] = splits[0] + "-" + splits[1];
+
+                String content = "";
+                if(parts.length > 1) {
+                    if (loadSize - parts[0].length() - 1 > 0) {
+                        parts[1] = generatePayload(loadSize - parts[0].length() - 1);
+                    }
+                    content = parts[0] + "/" + parts[1];
+                } else {
+                    content = parts[0] + "/";
+                }
+
+                m = service.createDirectedMessage(partnerId, content);
 
                 try {
                     service.enqueueMessage(QUEUE, m);

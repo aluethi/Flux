@@ -16,6 +16,10 @@ public class DialogServerWorkload extends Workload {
 
     @Override
     public void start(MessageService service, String[] args) {
+        int loadSize = 0;
+        if(args.length > 0) {
+            loadSize = Integer.parseInt(args[0]);
+        }
         try {
             int partnerId = service.getClientId() - 1;
             service.register();
@@ -24,9 +28,25 @@ public class DialogServerWorkload extends Workload {
                 try {
                     Message m = service.dequeueMessage(QUEUE);
                     if(m == Message.NO_MESSAGE) continue;
-                    String[] splits = m.getContent().split("-");
+
+                    String[] parts = m.getContent().split("/");
+
+                    String[] splits = parts[0].split("-");
                     splits[1] = String.valueOf(Integer.parseInt(splits[1]) + 1);
-                    Message n = service.createDirectedMessage(partnerId, splits[0] + "-" + splits[1]);
+                    parts[0] = splits[0] + "-" + splits[1];
+
+                    String content = "";
+                    if(parts.length > 1) {
+                        if (loadSize - parts[0].length() - 1 > 0) {
+                            parts[1] = generatePayload(loadSize - parts[0].length() - 1);
+                        }
+                        content = parts[0] + "/" + parts[1];
+                    } else {
+                        content = parts[0] + "/";
+                    }
+
+                    Message n = service.createDirectedMessage(partnerId, content);
+
                     service.enqueueMessage(QUEUE, n);
                 } catch (NoSuchQueueException e) {
                     try {

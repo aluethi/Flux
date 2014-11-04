@@ -129,11 +129,18 @@ public class Server implements Runnable {
      * Handles a read on the network interface.
      * @param key
      */
-    protected void handleRead(SelectionKey key) {
+    protected void handleRead(final SelectionKey key) {
         Client client = (Client) key.attachment();
 
-        /*int keyOps = key.interestOps();
-        key.interestOps(keyOps & ~SelectionKey.OP_READ);*/
+        final int keyOps = key.interestOps();
+        key.interestOps(keyOps & ~SelectionKey.OP_READ);
+
+        client.setWriteHook(new Runnable() {
+            @Override
+            public void run() {
+                key.interestOps(keyOps);
+            }
+        });
 
         try {
             //int readSize = client.read();

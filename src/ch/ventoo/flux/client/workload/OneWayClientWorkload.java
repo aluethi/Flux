@@ -18,24 +18,56 @@ public class OneWayClientWorkload extends Workload {
 
     @Override
     public void start(MessageService service, String[] args) {
+        int loadSize = 0;
+        if(args.length > 0) {
+            loadSize = Integer.parseInt(args[0]);
+        }
         try {
-            Message m = service.createAnonymousMessage("0");
+            Message m = null;
+            if(loadSize > 2) {
+                m = service.createAnonymousMessage("0/" + generatePayload(loadSize-2));
+            } else {
+                m = service.createAnonymousMessage("0/");
+            }
             service.register();
 
-            while(!isStopped()) {
+            while(true) {
                 try {
                     service.enqueueMessage(QUEUE, m);
-                    m = service.dequeueMessage(QUEUE);
+                    break;
                 } catch (NoSuchQueueException e) {
                     try {
                         service.createQueue(QUEUE);
                     } catch (DuplicateQueueException e1) {
-                        /* ignore */
+                    /* ignored */
                     }
                 } catch (NoSuchClientException e) {
                     e.printStackTrace();
                 }
-                m.setContent(String.valueOf(Integer.parseInt(m.getContent()) + 1));
+            }
+
+            while(!isStopped()) {
+                try {
+                    m = service.dequeueMessage(QUEUE);
+                    if(m == Message.NO_MESSAGE) {
+                        continue;
+                    }
+                    String[] parts = m.getContent().split("/");
+                    parts[0] = String.valueOf(Integer.parseInt(parts[0]) + 1);
+                    if(parts.length > 1) {
+                        if (loadSize - parts[0].length() - 1 > 0) {
+                            parts[1] = generatePayload(loadSize - parts[0].length() - 1);
+                        }
+                        m.setContent(parts[0] + "/" + parts[1]);
+                    } else {
+                        m.setContent(parts[0] + "/");
+                    }
+                    service.enqueueMessage(QUEUE, m);
+                } catch (NoSuchQueueException e) {
+                        /* ignore */
+                } catch (NoSuchClientException e) {
+                    e.printStackTrace();
+                }
             }
         } catch (DuplicateClientException e) {
             e.printStackTrace();
