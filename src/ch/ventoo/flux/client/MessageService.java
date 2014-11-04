@@ -22,10 +22,12 @@ import java.io.IOException;
 public class MessageService {
 
     private static LogWrapper LOGGER = new LogWrapper(MessageService.class);
+    private final int _clientId;
     private final Connection _connection;
 
-    public MessageService(String host, int port, BenchLogger log) {
+    public MessageService(int clientId, String host, int port, BenchLogger log) {
         _connection = new Connection(host, port, log);
+        _clientId = clientId;
     }
 
     /**
@@ -64,14 +66,13 @@ public class MessageService {
 
     /**
      * Registers a client at the message passing system.
-     * @param clientId
      * @return
      * @throws DuplicateClientException
      * @throws UnknownErrorException
      */
-    public boolean register(int clientId) throws DuplicateClientException, UnknownErrorException {
+    public boolean register() throws DuplicateClientException, UnknownErrorException {
         try {
-            RegisterClientCommand cmd = new RegisterClientCommand(clientId);
+            RegisterClientCommand cmd = new RegisterClientCommand(_clientId);
             _connection.writeCommand(cmd);
             Response response = _connection.readResponse();
 
@@ -94,14 +95,13 @@ public class MessageService {
 
     /**
      * Deregisters a client at the message passing system.
-     * @param clientId
      * @return
      * @throws NoSuchClientException
      * @throws UnknownErrorException
      */
-    public boolean deregister(int clientId) throws NoSuchClientException, UnknownErrorException {
+    public boolean deregister() throws NoSuchClientException, UnknownErrorException {
         try {
-            DeregisterClientCommand cmd = new DeregisterClientCommand(clientId);
+            DeregisterClientCommand cmd = new DeregisterClientCommand(_clientId);
             _connection.writeCommand(cmd);
             Response response = _connection.readResponse();
 
@@ -267,8 +267,9 @@ public class MessageService {
      * @throws NoSuchQueueException
      * @throws UnknownErrorException
      */
-    public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, UnknownErrorException {
+    public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, UnknownErrorException, NoSuchClientException {
         try {
+            message.setSender(_clientId);
             EnqueueMessageCommand cmd = new EnqueueMessageCommand(queueName, message);
             _connection.writeCommand(cmd);
             Response response = _connection.readResponse();
@@ -278,8 +279,10 @@ public class MessageService {
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
+                } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
+                    throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing EnqueueMessage.");
+                    LOGGER.warning("There was an unknown exception while executing DequeueMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }
@@ -296,9 +299,9 @@ public class MessageService {
      * @throws NoSuchQueueException
      * @throws UnknownErrorException
      */
-    public Message dequeueMessage(String queueName) throws NoSuchQueueException, UnknownErrorException {
+    public Message dequeueMessage(String queueName) throws NoSuchQueueException, UnknownErrorException, NoSuchClientException {
         try {
-            DequeueMessageCommand cmd = new DequeueMessageCommand(queueName);
+            DequeueMessageCommand cmd = new DequeueMessageCommand(queueName, _clientId);
             _connection.writeCommand(cmd);
             Response response = _connection.readResponse();
 
@@ -307,8 +310,10 @@ public class MessageService {
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
+                } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
+                    throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing DequeueMessage.");
+                    LOGGER.warning("There was an unknown exception while executing DequeueMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }
@@ -329,7 +334,7 @@ public class MessageService {
      */
     public Message dequeueMessageFromSender(String queueName, int senderId) throws NoSuchQueueException, NoSuchClientException, UnknownErrorException {
         try {
-            DequeueMessageFromSenderCommand cmd = new DequeueMessageFromSenderCommand(queueName, senderId);
+            DequeueMessageFromSenderCommand cmd = new DequeueMessageFromSenderCommand(queueName, senderId, _clientId);
             _connection.writeCommand(cmd);
             Response response = _connection.readResponse();
 
@@ -359,9 +364,9 @@ public class MessageService {
      * @throws NoSuchQueueException
      * @throws UnknownErrorException
      */
-    public Message peekMessage(String queueName) throws NoSuchQueueException, UnknownErrorException {
+    public Message peekMessage(String queueName) throws NoSuchQueueException, UnknownErrorException, NoSuchClientException {
         try {
-            PeekMessageCommand cmd = new PeekMessageCommand(queueName);
+            PeekMessageCommand cmd = new PeekMessageCommand(queueName, _clientId);
             _connection.writeCommand(cmd);
             Response response = _connection.readResponse();
 
@@ -370,8 +375,10 @@ public class MessageService {
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
+                } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
+                    throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing PeekMessage.");
+                    LOGGER.warning("There was an unknown exception while executing DequeueMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }
@@ -393,7 +400,7 @@ public class MessageService {
      */
     public Message peekMessageFromSender(String queueName, int senderId) throws NoSuchQueueException, NoSuchClientException, UnknownErrorException {
         try {
-            PeekMessageFromSenderCommand cmd = new PeekMessageFromSenderCommand(queueName, senderId);
+            PeekMessageFromSenderCommand cmd = new PeekMessageFromSenderCommand(queueName, senderId, _clientId);
             _connection.writeCommand(cmd);
             Response response = _connection.readResponse();
 
@@ -413,6 +420,18 @@ public class MessageService {
             LOGGER.severe("There was an I/O error.");
             throw new RuntimeException(e);
         }
+    }
+
+    public Message createAnonymousMessage(String content) {
+        return new Message(_clientId, content);
+    }
+
+    public Message createDirectedMessage(int receiverId, String content) {
+        return new Message(_clientId, receiverId, content);
+    }
+
+    public int getClientId() {
+        return _clientId;
     }
 
 }

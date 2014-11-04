@@ -21,8 +21,7 @@ public class Timing {
     private BenchLogger _log;
     private long _lastTime = 0;
     private Region _lastRegion;
-    private Object[] _regions = new Object[Region.values().length];
-    private Object[] _types = null;
+    private Object[] _regions = new Object[Region.values().length + 2];
 
     public Timing(BenchLogger log) {
         _log = log;
@@ -51,13 +50,8 @@ public class Timing {
      * Flushes an entry to the log.
      */
     public void flush() {
-        if(_types != null) {
-            _log.addTimedEntry(_regions, _types);
-            _types = new Object[2];
-        } else {
-            _log.addTimedEntry(_regions);
-        }
-        _regions = new Object[Region.values().length];
+        _log.addTimedEntry(_regions);
+        _regions = new Object[Region.values().length + 2];
     }
 
     /**
@@ -65,7 +59,7 @@ public class Timing {
      * @param cmd
      */
     public void setCommand(Command cmd) {
-        setType(cmd.getType(), 0);
+        _regions[_regions.length - 2] = cmd.getType();
     }
 
     /**
@@ -73,19 +67,7 @@ public class Timing {
      * @param response
      */
     public void setResponse(Response response) {
-        setType(response.getType(), 1);
-    }
-
-    /**
-     * Sets a message type that should be logged.
-     * @param type
-     * @param pos
-     */
-    public void setType(int type, int pos) {
-        if(_types == null) {
-            _types = new Object[2];
-        }
-        _types[pos] = type;
+        _regions[_regions.length - 1] = response.getType();
     }
 
 }

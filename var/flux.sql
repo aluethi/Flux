@@ -1,22 +1,28 @@
-
 CREATE TABLE client
 (
     id integer NOT NULL,
     created timestamp without time zone DEFAULT now(),
     CONSTRAINT client_pkey PRIMARY KEY (id)
 );
+CREATE INDEX client_idx_id ON client (id);
 
 CREATE SEQUENCE message_id_seq;
 CREATE TABLE message
 (
     id integer PRIMARY KEY DEFAULT nextval('message_id_seq'::regclass),
-    sender int,
+    sender int NOT NULL,
     receiver int,
     queue int,
     priority int,
     created timestamp without time zone DEFAULT now(),
     content text
 );
+CREATE INDEX message_idx_id ON message (id);
+CREATE INDEX message_idx_sender ON message (sender);
+CREATE INDEX message_idx_receiver ON message (receiver);
+CREATE INDEX message_idx_queue ON message (queue);
+CREATE INDEX message_idx_priority ON message (priority);
+CREATE INDEX message_idx_created ON message (created);
 
 CREATE SEQUENCE queue_id_seq;
 CREATE TABLE queue
@@ -26,6 +32,8 @@ CREATE TABLE queue
     created timestamp without time zone DEFAULT now(),
     CONSTRAINT queue_pkey PRIMARY KEY (id)
 );
+CREATE INDEX queue_idx_id ON queue (id);
+CREATE INDEX queue_idx_handle ON queue (handle);
 
 
 -----------------
@@ -217,22 +225,30 @@ COST 100;
 ----------------
 -- dequeue message
 ----------------
-CREATE OR REPLACE FUNCTION dequeueMessage(queueHandle character varying)
+CREATE OR REPLACE FUNCTION dequeueMessage(queueHandle character varying, receiverId integer)
 	RETURNS message AS
 $BODY$
 declare
     temp integer;
     result_set message;
 begin
-    IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
-        SELECT id FROM queue WHERE handle = queueHandle INTO temp;
-        SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
-        FROM message WHERE message.queue = temp ORDER BY message.created ASC LIMIT 1 INTO result_set;
-        DELETE FROM message WHERE message.id = result_set.id;
-        return result_set;
-    ELSE
-        RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+    IF EXISTS(SELECT 1 FROM client WHERE id = receiverId) THEN
+        IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
+            SELECT id FROM queue WHERE handle = queueHandle INTO temp;
+            IF EXISTS(SELECT 1 FROM message WHERE message.queue = temp AND message.receiver = receiverId) THEN
+                SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                FROM message WHERE message.queue = temp AND message.receiver = receiverId ORDER BY message.created ASC LIMIT 1 INTO result_set;
+            ELSE
+                SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                FROM message WHERE message.queue = temp AND message.receiver = 0 ORDER BY message.created ASC LIMIT 1 INTO result_set;
+            END IF;
+            DELETE FROM message WHERE message.id = result_set.id;
+            return result_set;
+        ELSE
+            RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+        END IF;
     END IF;
+    RAISE 'No client found with id %.', receiverId USING ERRCODE = 'F0001';
 end
 $BODY$
 LANGUAGE plpgsql VOLATILE
@@ -242,25 +258,34 @@ COST 100;
 ----------------
 -- dequeue message from sender
 ----------------
-CREATE OR REPLACE FUNCTION dequeueMessageFromSender(queueHandle character varying, msgSender integer)
+CREATE OR REPLACE FUNCTION dequeueMessageFromSender(queueHandle character varying, senderId integer, receiverId integer)
 	RETURNS message AS
 $BODY$
 declare
     temp integer;
     result_set message;
 begin
-    IF EXISTS(SELECT 1 FROM client WHERE id = msgSender) THEN
-        IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
-            SELECT id FROM queue WHERE handle = queueHandle INTO temp;
-            SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
-            FROM message WHERE message.queue = temp AND message.sender = msgSender ORDER BY message.created ASC LIMIT 1 INTO result_set;
-            DELETE FROM message WHERE message.id = result_set.id;
-            return result_set;
+    IF EXISTS(SELECT 1 FROM client WHERE id = receiverId) THEN
+        IF EXISTS(SELECT 1 FROM client WHERE id = senderId) THEN
+            IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
+                SELECT id FROM queue WHERE handle = queueHandle INTO temp;
+                IF EXISTS(SELECT 1 FROM message WHERE message.queue = temp AND message.receiver = receiverId AND message.sender = senderId) THEN
+                    SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                    FROM message WHERE message.queue = temp AND message.sender = senderId AND message.receiver = receiverId ORDER BY message.created ASC LIMIT 1 INTO result_set;
+                ELSE
+                    SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                    FROM message WHERE message.queue = temp AND message.sender = senderId AND message.receiver = 0 ORDER BY message.created ASC LIMIT 1 INTO result_set;
+                END IF;
+                DELETE FROM message WHERE message.id = result_set.id;
+                return result_set;
+            ELSE
+                RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+            END IF;
         ELSE
-            RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+            RAISE 'No client found with id %.', senderId USING ERRCODE = 'F0001';
         END IF;
     ELSE
-        RAISE 'No client found with id %.', msgSender USING ERRCODE = 'F0001';
+        RAISE 'No client found with id %.', receiverId USING ERRCODE = 'F0001';
     END IF;
 end
 $BODY$
@@ -271,50 +296,68 @@ COST 100;
 ----------------
 -- peek message
 ----------------
-CREATE OR REPLACE FUNCTION dequeueMessage(queueHandle character varying)
+CREATE OR REPLACE FUNCTION peekMessage(queueHandle character varying, receiverId integer)
 	RETURNS message AS
 $BODY$
 declare
     temp integer;
     result_set message;
 begin
-    IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
-        SELECT id FROM queue WHERE handle = queueHandle INTO temp;
-        SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
-        FROM message WHERE message.queue = temp ORDER BY message.created ASC LIMIT 1 INTO result_set;
-        return result_set;
-    ELSE
-        RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+    IF EXISTS(SELECT 1 FROM client WHERE id = receiverId) THEN
+        IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
+            SELECT id FROM queue WHERE handle = queueHandle INTO temp;
+            IF EXISTS(SELECT 1 FROM message WHERE message.queue = temp AND message.receiver = receiverId) THEN
+                SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                FROM message WHERE message.queue = temp AND message.receiver = receiverId ORDER BY message.created ASC LIMIT 1 INTO result_set;
+            ELSE
+                SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                FROM message WHERE message.queue = temp AND message.receiver = 0 ORDER BY message.created ASC LIMIT 1 INTO result_set;
+            END IF;
+            return result_set;
+        ELSE
+            RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+        END IF;
     END IF;
+    RAISE 'No client found with id %.', receiverId USING ERRCODE = 'F0001';
 end
 $BODY$
-LANGUAGE plpgsql STABLE
+LANGUAGE plpgsql VOLATILE
 COST 100;
 
 
 ----------------
 -- peek message from sender
 ----------------
-CREATE OR REPLACE FUNCTION dequeueMessageFromSender(queueHandle character varying, msgSender integer)
+CREATE OR REPLACE FUNCTION peekMessageFromSender(queueHandle character varying, senderId integer, receiverId integer)
 	RETURNS message AS
 $BODY$
 declare
     temp integer;
     result_set message;
 begin
-    IF EXISTS(SELECT 1 FROM client WHERE id = msgSender) THEN
-        IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
-            SELECT id FROM queue WHERE handle = queueHandle INTO temp;
-            SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
-            FROM message WHERE message.queue = temp AND message.sender = msgSender ORDER BY message.created ASC LIMIT 1 INTO result_set;
-            return result_set;
+    IF EXISTS(SELECT 1 FROM client WHERE id = receiverId) THEN
+        IF EXISTS(SELECT 1 FROM client WHERE id = senderId) THEN
+            IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
+                SELECT id FROM queue WHERE handle = queueHandle INTO temp;
+                IF EXISTS(SELECT 1 FROM message WHERE message.queue = temp AND message.receiver = receiverId AND message.sender = senderId) THEN
+                    SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                    FROM message WHERE message.queue = temp AND message.sender = senderId AND message.receiver = receiverId ORDER BY message.created ASC LIMIT 1 INTO result_set;
+                ELSE
+                    SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
+                    FROM message WHERE message.queue = temp AND message.sender = senderId AND message.receiver = 0 ORDER BY message.created ASC LIMIT 1 INTO result_set;
+                END IF;
+                DELETE FROM message WHERE message.id = result_set.id;
+                return result_set;
+            ELSE
+                RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+            END IF;
         ELSE
-            RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';
+            RAISE 'No client found with id %.', senderId USING ERRCODE = 'F0001';
         END IF;
     ELSE
-        RAISE 'No client found with id %.', msgSender USING ERRCODE = 'F0001';
+        RAISE 'No client found with id %.', receiverId USING ERRCODE = 'F0001';
     END IF;
 end
 $BODY$
-LANGUAGE plpgsql STABLE
+LANGUAGE plpgsql VOLATILE
 COST 100;

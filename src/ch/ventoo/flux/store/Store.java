@@ -51,9 +51,9 @@ public interface Store {
      * A client can query a queue (if it exists) for messages from a particular sender
      */
     public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, NoSuchClientException;
-    public Message dequeueMessage(String queueName) throws NoSuchQueueException; // [Anonymous messages]
-    public Message dequeueMessageFromSender(String queueName, int senderId) throws NoSuchQueueException, NoSuchClientException; // [Directed messages]
-    public Message peekMessage(String queueName) throws NoSuchQueueException; // [Anonymous messages]
-    public Message peekMessageFromSender(String queueName, int senderId) throws NoSuchQueueException, NoSuchClientException; // [Directed messages]
+    public Message dequeueMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException; // [Anonymous messages]
+    public Message dequeueMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException; // [Directed messages]
+    public Message peekMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException, NoSuchClientException; // [Anonymous messages]
+    public Message peekMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException; // [Directed messages]
 
 }

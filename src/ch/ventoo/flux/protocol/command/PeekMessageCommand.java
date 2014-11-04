@@ -1,5 +1,6 @@
 package ch.ventoo.flux.protocol.command;
 
+import ch.ventoo.flux.exception.NoSuchClientException;
 import ch.ventoo.flux.exception.NoSuchQueueException;
 import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.protocol.Command;
@@ -10,6 +11,7 @@ import ch.ventoo.flux.protocol.response.ResponseMessage;
 import ch.ventoo.flux.store.PostgresStore;
 import ch.ventoo.flux.store.StoreUtil;
 import ch.ventoo.flux.store.pgsql.PgConnectionPool;
+import ch.ventoo.flux.util.StringUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -23,9 +25,11 @@ public class PeekMessageCommand extends Command {
 
     private DataInputStream _stream;
     private String _queueHandle;
+    private int _recieverId;
 
-    public PeekMessageCommand(String queueHandle) {
+    public PeekMessageCommand(String queueHandle, int receiverId) {
         _queueHandle = queueHandle;
+        _recieverId = receiverId;
     }
 
     public PeekMessageCommand(DataInputStream stream) {
@@ -40,7 +44,7 @@ public class PeekMessageCommand extends Command {
     @Override
     public byte[] getBody() {
         int length = _queueHandle.getBytes().length;
-        ByteBuffer buffer = ByteBuffer.allocate(length + 8);
+        ByteBuffer buffer = ByteBuffer.allocate(length + 12);
         buffer.putInt(getType());
         buffer.putInt(length);
         buffer.put(_queueHandle.getBytes());
@@ -49,17 +53,17 @@ public class PeekMessageCommand extends Command {
 
     @Override
     public Response execute() throws IOException {
-        int length = _stream.readInt();
-        byte[] data = new byte[length];
-        _stream.read(data);
-        _queueHandle = new String(data);
+        _recieverId = _stream.readInt();
+        _queueHandle = StringUtil.readStringFromStream(_stream);
         Connection con = PgConnectionPool.getInstance().getConnection();
         PostgresStore store = new PostgresStore(con);
         try {
-            Message message = store.peekMessage(_queueHandle);
+            Message message = store.peekMessage(_queueHandle, _recieverId);
             return new ResponseMessage(message);
         } catch (NoSuchQueueException e) {
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
+        } catch (NoSuchClientException e) {
+            return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
         } finally {
             StoreUtil.closeQuietly(con);
         }

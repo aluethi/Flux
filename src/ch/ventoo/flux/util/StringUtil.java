@@ -23,6 +23,7 @@ public class StringUtil {
             StringBuilder sb = new StringBuilder();
             sb.append(params[0]);
             for(int i = 1; i < params.length; i++) {
+                sb.append(delim);
                 sb.append(params[i]);
             }
             return sb.toString();

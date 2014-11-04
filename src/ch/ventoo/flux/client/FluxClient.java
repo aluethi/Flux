@@ -9,7 +9,7 @@ import java.util.Arrays;
  */
 public class FluxClient {
 
-    private ExperimentExecutor _executor;
+    private WorkloadExecutor _executor;
 
     public static void main(String[] args) {
 
@@ -18,7 +18,7 @@ public class FluxClient {
             System.exit(1);
         }
 
-        String clientId = args[0];
+        int clientId = Integer.parseInt(args[0]);
         String host = args[1];
         String port = args[2];
         String experiment = args[3];
@@ -27,9 +27,9 @@ public class FluxClient {
         new FluxClient(clientId, host, Integer.parseInt(port), experiment, arguments);
     }
 
-    public FluxClient(String clientId, String host, int port, String experiment, String[] args) {
+    public FluxClient(int clientId, String host, int port, String experiment, String[] args) {
         BenchLogger log = new BenchLogger("client-" + clientId);
-        _executor = new ExperimentExecutor(host, port, log);
+        _executor = new WorkloadExecutor(clientId, host, port, log);
         _executor.executeExperiment(experiment, args);
     }
 
