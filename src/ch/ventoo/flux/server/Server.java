@@ -143,14 +143,16 @@ public class Server implements Runnable {
         });
 
         try {
-            //int readSize = client.read();
-            //if(readSize > 0) {
+            // Better to read the message here.
+            // Otherwise enqueue and deque messages can over pass each other.
+            // By reading here we kind of serialize the incoming messages
+            // because we only have one accepting thread.
+            int readSize = client.read();
+            if(readSize > 0) {
                 _clientQueue.put(client);
-            //} else {
-            //    client.shutdown();
-            //}
-        //} catch (IOException e) {
-        //    LOGGER.warning("Error while reading from the client.");
+            } else {
+                client.shutdown();
+            }
         } catch (InterruptedException e) {
             LOGGER.severe("Interruption while putting a client into the client queue.");
         }

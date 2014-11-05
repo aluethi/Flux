@@ -25,13 +25,7 @@ public class Client {
         _format = new WireFormat();
     }
 
-    /**
-     * Reads inbound bytes from the network connection to the client and
-     * demarshals the connection byte buffer into a frame.
-     * @return
-     * @throws IOException
-     */
-    public Frame readFrame() {
+    public int read() {
         try {
             int readBytes = 0, readSize;
 
@@ -41,7 +35,7 @@ public class Client {
                 if ((readSize = _channel.read(_buffer)) < 0) {
                     LOGGER.warning("The connection has been closed.");
                     shutdown();
-                    return null;
+                    return -1;
                 }
                 readBytes += readSize;
             } while (readBytes < 4);
@@ -54,20 +48,33 @@ public class Client {
                 if ((readSize = _channel.read(_buffer)) < 0) {
                     LOGGER.warning("The connection has been closed.");
                     shutdown();
-                    return null;
+                    return -1;
                 }
                 readBytes += readSize;
             }
 
-            byte[] body = new byte[frameSize];
-            _buffer.flip();
-            _buffer.position(4);
-            _buffer.get(body);
-
-            return new Frame(frameSize, body);
+            return readBytes;
         } catch (IOException e) {
             LOGGER.warning("The connection has been closed.");
             shutdown();
+            return -1;
+        }
+    }
+
+    /**
+     * Reads inbound bytes from the network connection to the client and
+     * demarshals the connection byte buffer into a frame.
+     * @return
+     * @throws IOException
+     */
+    public Frame readFrame() {
+        _buffer.flip();
+        if(_buffer.hasRemaining()) {
+            int frameSize = _buffer.getInt();
+            byte[] body = new byte[frameSize];
+            _buffer.get(body);
+            return new Frame(frameSize, body);
+        } else {
             return null;
         }
     }
