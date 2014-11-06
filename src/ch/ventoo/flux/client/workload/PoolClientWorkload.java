@@ -29,6 +29,7 @@ public class PoolClientWorkload extends Workload {
 
         retryRegister(service);
         retryCreateQueue(service, PUT_QUEUE);
+        retryCreateQueue(service, GET_QUEUE);
         retryEnqueueMessage(service, PUT_QUEUE, m);
 
         while(!isStopped()) {

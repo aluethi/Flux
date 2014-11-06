@@ -40,6 +40,7 @@ public class PostgresStore implements Store {
             stmt.setInt(1, clientId);
             stmt.execute();
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("23505")) { // Duplicate key exception
                 throw new DuplicateClientException();
             }
@@ -65,6 +66,7 @@ public class PostgresStore implements Store {
             stmt.setInt(1, clientId);
             stmt.execute();
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0001")) { // No client with this id found
                 throw new NoSuchClientException();
             }
@@ -93,6 +95,8 @@ public class PostgresStore implements Store {
             Queue q = new Queue(rs.getInt(1), rs.getString(2), rs.getDate(3));
             return q;
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(rs);
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0002")) { // Queue with given handle already exists
                 throw new DuplicateQueueException();
             }
@@ -117,6 +121,7 @@ public class PostgresStore implements Store {
             stmt.setString(1, queueName);
             stmt.execute();
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             }
@@ -146,6 +151,8 @@ public class PostgresStore implements Store {
             result = rs.getBoolean(0);
             return result;
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(rs);
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             }
@@ -167,6 +174,7 @@ public class PostgresStore implements Store {
             stmt = _con.prepareCall("{ call queryForQueues() }");
             return getQueues(stmt);
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
@@ -186,6 +194,7 @@ public class PostgresStore implements Store {
             stmt.setInt(1, senderId);
             return getQueues(stmt);
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
@@ -216,6 +225,7 @@ public class PostgresStore implements Store {
             }
             return queues;
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(rs);
             throw e;
         } finally {
             StoreUtil.closeQuietly(rs);
@@ -242,6 +252,7 @@ public class PostgresStore implements Store {
             stmt.setString(5, message.getContent());
             stmt.execute();
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             } else if (e.getSQLState().equals("F0001")) {
@@ -269,6 +280,7 @@ public class PostgresStore implements Store {
             stmt.setInt(2, receiverId);
             return getMessage(stmt);
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             } else if (e.getSQLState().equals("F0001")) {
@@ -278,7 +290,6 @@ public class PostgresStore implements Store {
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
-        //return Message.NO_MESSAGE;
     }
 
     /**
@@ -299,6 +310,7 @@ public class PostgresStore implements Store {
             stmt.setInt(3, receiverId);
             return getMessage(stmt);
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             } else if (e.getSQLState().equals("F0001")) {
@@ -325,6 +337,7 @@ public class PostgresStore implements Store {
             stmt.setInt(2, receiverId);
             return getMessage(stmt);
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             } else if (e.getSQLState().equals("F0001")) {
@@ -354,6 +367,7 @@ public class PostgresStore implements Store {
             stmt.setInt(3, receiverId);
             return getMessage(stmt);
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(stmt);
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             } else if (e.getSQLState().equals("F0001")) {
@@ -383,6 +397,7 @@ public class PostgresStore implements Store {
                 return m;
             }
         } catch (SQLException e) {
+            StoreUtil.closeQuietly(rs);
             throw e;
         } finally {
             StoreUtil.closeQuietly(rs);

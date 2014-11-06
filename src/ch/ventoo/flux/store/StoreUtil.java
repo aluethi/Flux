@@ -16,25 +16,31 @@ public class StoreUtil {
 
     public static void closeQuietly(ResultSet rs) {
         try {
-            rs.close();
+            if(rs != null) {
+                rs.close();
+            }
         } catch (Exception e) {
-            /* ignored */
+            throw new RuntimeException(e);
         }
     }
 
     public static void closeQuietly(Statement stmt) {
         try {
-            stmt.close();
+            if(stmt != null) {
+                stmt.close();
+            }
         } catch (Exception e) {
-            /* ignored */
+            throw new RuntimeException(e);
         }
     }
 
     public static void closeQuietly(Connection con) {
         try {
-            con.close();
+            if(con != null) {
+                con.close();
+            }
         } catch (Exception e) {
-            /* ignored */
+            throw new RuntimeException(e);
         }
     }
 
@@ -42,9 +48,8 @@ public class StoreUtil {
         try {
             return new Date(new SimpleDateFormat(DATE_FORMAT).parse(date).getTime());
         } catch (ParseException e) {
-            /* Ignored */
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     public static String convertDateToString(Date date) {

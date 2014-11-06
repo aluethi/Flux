@@ -2,6 +2,7 @@ from __future__ import with_statement
 from fabric.api import *
 from fabric.contrib.files import exists
 import time
+import os
 
 
 env.user = 'ubuntu'
@@ -162,14 +163,20 @@ def kill_all():
 
 ''' post processing methods '''
 def _copy_client_logs(experiment_id):
-  client()
   get('~/log', 'log/%s/clients' % experiment_id)
 
 
 def _copy_server_logs(experiment_id):
-  middleware()
   get('~/log', 'log/%s/middleware' % experiment_id)
   get('~/var/config.properties', 'log/%s/middleware' % experiment_id)
+
+
+def get_client_logs(experiment_id):
+  _copy_client_logs(experiment_id)
+
+
+def get_server_logs(experiment_id):
+  _copy_server_logs(experiment_id)
 
 
 def _copy_logs(experiment_id):
@@ -178,6 +185,15 @@ def _copy_logs(experiment_id):
 
 
 def _process_client_logs(experiment_id):
+  path = "log/%s/clients/" % experiment_id
+  files_in_dir = os.listdir(path)
+  for file_in_dir in files_in_dir:
+    fin = open(path + "/" + file_in_dir)
+    lines = fin.readlines()
+    fin.close()
+    fout = open(path + "/" + file_in_dir, 'w')
+    fout.writelines(lines[:-1])
+    fout.close()
   local('cat log/%s/clients/* | sort -n > log/%s/clients/allclients.log' % (experiment_id, experiment_id))
 
 
