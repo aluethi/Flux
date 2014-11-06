@@ -9,15 +9,11 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.protocol.response.ResponseMessage;
-import ch.ventoo.flux.store.PostgresStore;
-import ch.ventoo.flux.store.StoreUtil;
-import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 import ch.ventoo.flux.util.StringUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.sql.Connection;
 
 /**
  * Command to receive a message from a queue given a specific sender without removing it from the queue.
@@ -61,21 +57,24 @@ public class PeekMessageFromSenderCommand extends Command {
         _receiverId = _stream.readInt();
         _queueHandle = StringUtil.readStringFromStream(_stream);
         _senderId = _stream.readInt();
-        Connection con = PgConnectionPool.getInstance().getConnection();
-        PostgresStore store = new PostgresStore(con);
+        _manager.beginConnectionScope();
         try {
-            Message message = store.peekMessageFromSender(_queueHandle, _senderId, _receiverId);
+            _manager.beginTransaction();
+            Message message = _manager.getStore().peekMessageFromSender(_queueHandle, _senderId, _receiverId);
+            _manager.endTransaction();
             if(message == Message.NO_MESSAGE) {
                 return new ResponseAck();
             } else {
                 return new ResponseMessage(message);
             }
         } catch (NoSuchQueueException e) {
+            _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } catch (NoSuchClientException e) {
+            _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
         } finally {
-            StoreUtil.closeQuietly(con);
+            _manager.endConnectionScope();
         }
     }
 }

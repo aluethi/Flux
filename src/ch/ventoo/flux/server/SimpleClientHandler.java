@@ -52,10 +52,10 @@ public class SimpleClientHandler implements ClientHandler {
                 try {
                     response = command.execute();
                 } catch (IOException e) {
-                    LOGGER.severe("Could not execute command.");
                     throw new RuntimeException(e);
                 }
                 _timing.enterRegion(Timing.Region.RESPONSE);
+
                 Frame responseFrame = ProtocolHandler.prepareResponse(response);
                 try {
                     client.writeFrame(responseFrame);

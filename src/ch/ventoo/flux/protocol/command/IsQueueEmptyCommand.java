@@ -6,14 +6,11 @@ import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseBinary;
 import ch.ventoo.flux.protocol.response.ResponseError;
-import ch.ventoo.flux.store.PostgresStore;
-import ch.ventoo.flux.store.StoreUtil;
-import ch.ventoo.flux.store.pgsql.PgConnectionPool;
+import ch.ventoo.flux.util.StringUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.sql.Connection;
 
 /**
  * Command to check whether a message queue is empty.
@@ -48,19 +45,19 @@ public class IsQueueEmptyCommand extends Command {
 
     @Override
     public Response execute() throws IOException {
-        int length = _stream.readInt();
-        byte[] data = new byte[length];
-        _stream.read(data);
-        _queueHandle = new String(data);
-        Connection con = PgConnectionPool.getInstance().getConnection();
-        PostgresStore store = new PostgresStore(con);
+        _queueHandle = StringUtil.readStringFromStream(_stream);
+        _manager.beginConnectionScope();
+        boolean isEmpty = false;
         try {
-            boolean isEmpty = store.isQueueEmpty(_queueHandle);
-            return new ResponseBinary(isEmpty);
+            _manager.beginTransaction();
+            isEmpty = _manager.getStore().isQueueEmpty(_queueHandle);
+            _manager.endTransaction();
         } catch (NoSuchQueueException e) {
+            _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } finally {
-            StoreUtil.closeQuietly(con);
+            _manager.endConnectionScope();
         }
+        return new ResponseBinary(isEmpty);
     }
 }

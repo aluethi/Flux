@@ -292,11 +292,11 @@ public class PostgresStore implements Store {
             }
             // Can't gracefully handle other exceptions (e.g. missing database connection)
             LOGGER.severe("Received unhandled SQL Exception", e);
-            //throw new RuntimeException(e);
+            throw new RuntimeException(e);
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
-        return Message.NO_MESSAGE;
+        //return Message.NO_MESSAGE;
     }
 
     /**

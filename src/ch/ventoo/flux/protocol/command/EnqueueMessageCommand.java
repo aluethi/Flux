@@ -8,16 +8,13 @@ import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
-import ch.ventoo.flux.store.PostgresStore;
 import ch.ventoo.flux.store.StoreUtil;
-import ch.ventoo.flux.store.pgsql.PgConnectionPool;
+import ch.ventoo.flux.util.StringUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.SQLException;
 
 /**
  * Command to enqueue a new message into the message passing system.
@@ -74,60 +71,29 @@ public class EnqueueMessageCommand extends Command {
 
     @Override
     public Response execute() throws IOException {
-        int handleLength = _stream.readInt();
-        byte[] rawHandle = new byte[handleLength];
-        _stream.read(rawHandle);
-        _queueHandle = new String(rawHandle);
-
+        _queueHandle = StringUtil.readStringFromStream(_stream);
         int sender = _stream.readInt();
         int receiver = _stream.readInt();
         int priority = _stream.readInt();
-
-        int dateLength = _stream.readInt();
-        byte[] rawDate = new byte[dateLength];
-        _stream.read(rawDate);
-        String dateString = new String(rawDate);
+        String dateString = StringUtil.readStringFromStream(_stream);
         Date date = StoreUtil.convertStringToDate(dateString);
-
-        int contentLength = _stream.readInt();
-        byte[] rawContent = new byte[contentLength];
-        _stream.read(rawContent);
-        String content = new String(rawContent);
-
+        String content = StringUtil.readStringFromStream(_stream);
         _message = new Message(0, sender, receiver, priority, date, content);
 
-        Connection con = PgConnectionPool.getInstance().getConnection();
+        _manager.beginConnectionScope();
         try {
-            con.setAutoCommit(false);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        PostgresStore store = new PostgresStore(con);
-        try {
-            store.enqueueMessage(_queueHandle, _message);
-            return new ResponseAck();
+            _manager.beginTransaction();
+            _manager.getStore().enqueueMessage(_queueHandle, _message);
+            _manager.endTransaction();
         } catch (NoSuchQueueException e) {
-            try {
-                con.rollback();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
+            _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } catch (NoSuchClientException e) {
-
-            try {
-                con.rollback();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
+            _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
         } finally {
-            try {
-                con.commit();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            StoreUtil.closeQuietly(con);
+            _manager.endConnectionScope();
         }
+        return new ResponseAck();
     }
 }

@@ -5,14 +5,10 @@ import ch.ventoo.flux.protocol.Command;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseQueues;
-import ch.ventoo.flux.store.PostgresStore;
-import ch.ventoo.flux.store.StoreUtil;
-import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.sql.Connection;
 
 /**
  * Command to query for queues with waiting messages.
@@ -41,10 +37,11 @@ public class QueryForQueuesCommand extends Command {
 
     @Override
     public Response execute() throws IOException {
-        Connection con = PgConnectionPool.getInstance().getConnection();
-        PostgresStore store = new PostgresStore(con);
-        Queue[] queues = store.queryForQueues();
-        StoreUtil.closeQuietly(con);
+        _manager.beginConnectionScope();
+        _manager.beginTransaction();
+        Queue[] queues = _manager.getStore().queryForQueues();
+        _manager.endTransaction();
+        _manager.endConnectionScope();
         return new ResponseQueues(queues);
     }
 }

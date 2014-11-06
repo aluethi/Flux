@@ -1,7 +1,7 @@
 package ch.ventoo.flux.client.workload;
 
-import ch.ventoo.flux.client.Workload;
 import ch.ventoo.flux.client.MessageService;
+import ch.ventoo.flux.client.Workload;
 import ch.ventoo.flux.exception.*;
 import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.profiling.LogWrapper;

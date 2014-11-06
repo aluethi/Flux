@@ -102,7 +102,6 @@ public class Client {
         } catch (IOException e) {
             LOGGER.warning("There was an exception while writing to the client.");
         }
-        _buffer.clear();
         if(_writeHook != null) {
             _writeHook.run();
         }

@@ -139,6 +139,7 @@ public class Server implements Runnable {
             @Override
             public void run() {
                 key.interestOps(keyOps);
+                _selector.wakeup();
             }
         });
 

@@ -9,16 +9,11 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.protocol.response.ResponseMessage;
-import ch.ventoo.flux.store.PostgresStore;
-import ch.ventoo.flux.store.StoreUtil;
-import ch.ventoo.flux.store.pgsql.PgConnectionPool;
 import ch.ventoo.flux.util.StringUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * Command to dequeue a message from the message passing system.
@@ -58,21 +53,24 @@ public class DequeueMessageCommand extends Command {
     public Response execute() throws IOException {
         _receiverId = _stream.readInt();
         _queueHandle = StringUtil.readStringFromStream(_stream);
-        Connection con = PgConnectionPool.getInstance().getConnection();
-        PostgresStore store = new PostgresStore(con);
+        _manager.beginConnectionScope();
         try {
-            Message message = store.dequeueMessage(_queueHandle, _receiverId);
+            _manager.beginTransaction();
+            Message message = _manager.getStore().dequeueMessage(_queueHandle, _receiverId);
+            _manager.endTransaction();
             if(message == Message.NO_MESSAGE) {
                 return new ResponseAck();
             } else {
                 return new ResponseMessage(message);
             }
         } catch (NoSuchQueueException e) {
+            _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
         } catch (NoSuchClientException e) {
+            _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
         } finally {
-            StoreUtil.closeQuietly(con);
+            _manager.endConnectionScope();
         }
     }
 }

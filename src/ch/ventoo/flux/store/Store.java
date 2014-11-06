@@ -7,8 +7,6 @@ import ch.ventoo.flux.exception.NoSuchQueueException;
 import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.model.Queue;
 
-import java.sql.SQLException;
-
 /**
  * Store interface to abstract a specific store (e.g. database) from the rest of the system.
  */

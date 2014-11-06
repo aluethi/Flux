@@ -45,7 +45,6 @@ public class PgConnectionPool {
         Connection con = null;
         try {
             con = _source.getConnection();
-            con.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         } catch (SQLException e) {
             LOGGER.severe("Could not retrieve connection from the connection pool.");
             throw new RuntimeException(e);

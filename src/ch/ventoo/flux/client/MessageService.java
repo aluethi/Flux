@@ -6,7 +6,6 @@ import ch.ventoo.flux.model.Queue;
 import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.profiling.LogWrapper;
 import ch.ventoo.flux.protocol.Protocol;
-import ch.ventoo.flux.protocol.ProtocolHandler;
 import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.command.*;
 import ch.ventoo.flux.protocol.response.ResponseBinary;
@@ -269,6 +268,7 @@ public class MessageService {
      */
     public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, UnknownErrorException, NoSuchClientException {
         try {
+
             message.setSender(_clientId);
             EnqueueMessageCommand cmd = new EnqueueMessageCommand(queueName, message);
             _connection.writeCommand(cmd);
