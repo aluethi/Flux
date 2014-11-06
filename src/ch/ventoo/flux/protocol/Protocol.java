@@ -35,5 +35,6 @@ public interface Protocol {
         int NO_SUCH_CLIENT = 2;
         int DUPLICATE_QUEUE = 3;
         int NO_SUCH_QUEUE = 4;
+        int DATABASE_ERROR = 5;
     }
 }

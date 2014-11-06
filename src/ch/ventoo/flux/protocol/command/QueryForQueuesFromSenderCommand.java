@@ -4,11 +4,13 @@ import ch.ventoo.flux.model.Queue;
 import ch.ventoo.flux.protocol.Command;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
+import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.protocol.response.ResponseQueues;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 
 /**
  * Command to query for queues with messages from a specific sender.
@@ -43,10 +45,17 @@ public class QueryForQueuesFromSenderCommand extends Command {
     public Response execute() throws IOException {
         _senderId = _stream.readInt();
         _manager.beginConnectionScope();
-        _manager.beginTransaction();
-        Queue[] queues = _manager.getStore().queryForQueuesFromSender(_senderId);
-        _manager.endTransaction();
-        _manager.endConnectionScope();
+        Queue[] queues;
+        try {
+            _manager.beginTransaction();
+            queues = _manager.getStore().queryForQueuesFromSender(_senderId);
+            _manager.endTransaction();
+        } catch (SQLException e) {
+            _manager.abortTransaction();
+            return new ResponseError(Protocol.ErrorCodes.DATABASE_ERROR);
+        } finally {
+            _manager.endConnectionScope();
+        }
         return new ResponseQueues(queues);
     }
 }

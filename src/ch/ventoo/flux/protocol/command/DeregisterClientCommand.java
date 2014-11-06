@@ -10,6 +10,7 @@ import ch.ventoo.flux.protocol.response.ResponseError;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 
 /**
  * Command to de-register a client from the message passing system.
@@ -51,6 +52,9 @@ public class DeregisterClientCommand extends Command {
         } catch (NoSuchClientException e) {
             _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
+        } catch (SQLException e) {
+            _manager.abortTransaction();
+            return new ResponseError(Protocol.ErrorCodes.DATABASE_ERROR);
         } finally {
             _manager.endConnectionScope();
         }

@@ -39,13 +39,8 @@ public class PostgresStoreManager {
         }
     }
 
-    public void endTransaction() {
-        try {
-            _connection.commit();
-        } catch (SQLException e) {
-            LOGGER.severe("Could not end transaction.");
-            throw new RuntimeException(e);
-        }
+    public void endTransaction() throws SQLException {
+        _connection.commit();
     }
 
     public void abortTransaction() {

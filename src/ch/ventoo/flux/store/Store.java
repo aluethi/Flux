@@ -7,6 +7,8 @@ import ch.ventoo.flux.exception.NoSuchQueueException;
 import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.model.Queue;
 
+import java.sql.SQLException;
+
 /**
  * Store interface to abstract a specific store (e.g. database) from the rest of the system.
  */
@@ -19,8 +21,8 @@ public interface Store {
      * A client can disconnect from the message passing system.
      * @param clientName
      */
-    public boolean registerClient(int clientName) throws DuplicateClientException;
-    public boolean deregisterClient(int clientName) throws NoSuchClientException;
+    public boolean registerClient(int clientName) throws DuplicateClientException, SQLException;
+    public boolean deregisterClient(int clientName) throws NoSuchClientException, SQLException;
 
 
     /**
@@ -32,11 +34,11 @@ public interface Store {
      * A client can query for queues where any messages are waiting. [Anonymous messages]
      * A client can query for queues where messages are waiting for them specifically.
      */
-    public Queue createQueue(String queueName) throws DuplicateQueueException;
-    public boolean deleteQueue(String queueName) throws NoSuchQueueException; // What if not empty?
-    public boolean isQueueEmpty(String queueName) throws NoSuchQueueException;
-    public Queue[] queryForQueues();
-    public Queue[] queryForQueuesFromSender(int senderId);
+    public Queue createQueue(String queueName) throws DuplicateQueueException, SQLException;
+    public boolean deleteQueue(String queueName) throws NoSuchQueueException, SQLException; // What if not empty?
+    public boolean isQueueEmpty(String queueName) throws NoSuchQueueException, SQLException;
+    public Queue[] queryForQueues() throws SQLException;
+    public Queue[] queryForQueuesFromSender(int senderId) throws SQLException;
 
 
     /**
@@ -48,10 +50,10 @@ public interface Store {
      * A client can post a message to a particular queue (if it exists), that can only be accessed by a specified receiver
      * A client can query a queue (if it exists) for messages from a particular sender
      */
-    public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, NoSuchClientException;
-    public Message dequeueMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException; // [Anonymous messages]
-    public Message dequeueMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException; // [Directed messages]
-    public Message peekMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException, NoSuchClientException; // [Anonymous messages]
-    public Message peekMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException; // [Directed messages]
+    public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, NoSuchClientException, SQLException;
+    public Message dequeueMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException, SQLException; // [Anonymous messages]
+    public Message dequeueMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException, SQLException; // [Directed messages]
+    public Message peekMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException, NoSuchClientException, SQLException; // [Anonymous messages]
+    public Message peekMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException, SQLException; // [Directed messages]
 
 }

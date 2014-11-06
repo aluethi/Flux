@@ -236,13 +236,14 @@ begin
         IF EXISTS(SELECT 1 FROM queue WHERE handle = queueHandle) THEN
             SELECT id FROM queue WHERE handle = queueHandle INTO temp;
             IF EXISTS(SELECT 1 FROM message WHERE message.queue = temp AND message.receiver = receiverId) THEN
-                SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
-                FROM message WHERE message.queue = temp AND message.receiver = receiverId ORDER BY message.created ASC LIMIT 1 INTO result_set;
+                DELETE FROM message WHERE message.id = (
+                    SELECT message.id FROM message WHERE message.queue = temp AND message.receiver = receiverId ORDER BY message.created ASC LIMIT 1
+                ) RETURNING * INTO result_set;
             ELSE
-                SELECT message.id, message.sender, message.receiver, message.queue, message.priority, message.created, message.content
-                FROM message WHERE message.queue = temp AND message.receiver = 0 ORDER BY message.created ASC LIMIT 1 INTO result_set;
+                DELETE FROM message WHERE message.id = (
+                    SELECT message.id FROM message WHERE message.queue = temp AND message.receiver = 0 ORDER BY message.created ASC LIMIT 1
+                ) RETURNING * INTO result_set;
             END IF;
-            DELETE FROM message WHERE message.id = result_set.id;
             return result_set;
         ELSE
             RAISE 'No queue found with handle %.', queueHandle USING ERRCODE = 'F0003';

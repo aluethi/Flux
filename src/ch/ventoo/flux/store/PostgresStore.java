@@ -33,7 +33,7 @@ public class PostgresStore implements Store {
      * @throws DuplicateClientException
      */
     @Override
-    public boolean registerClient(int clientId) throws DuplicateClientException {
+    public boolean registerClient(int clientId) throws DuplicateClientException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call registerClient(?) }");
@@ -43,9 +43,7 @@ public class PostgresStore implements Store {
             if(e.getSQLState().equals("23505")) { // Duplicate key exception
                 throw new DuplicateClientException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -60,7 +58,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchClientException
      */
     @Override
-    public boolean deregisterClient(int clientId) throws NoSuchClientException {
+    public boolean deregisterClient(int clientId) throws NoSuchClientException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call deregisterClient(?) }");
@@ -70,9 +68,7 @@ public class PostgresStore implements Store {
             if(e.getSQLState().equals("F0001")) { // No client with this id found
                 throw new NoSuchClientException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -86,7 +82,7 @@ public class PostgresStore implements Store {
      * @throws DuplicateQueueException
      */
     @Override
-    public Queue createQueue(String queueName) throws DuplicateQueueException {
+    public Queue createQueue(String queueName) throws DuplicateQueueException, SQLException {
         CallableStatement stmt = null;
         ResultSet rs = null;
         try {
@@ -100,9 +96,7 @@ public class PostgresStore implements Store {
             if(e.getSQLState().equals("F0002")) { // Queue with given handle already exists
                 throw new DuplicateQueueException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(rs);
             StoreUtil.closeQuietly(stmt);
@@ -116,7 +110,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchQueueException
      */
     @Override
-    public boolean deleteQueue(String queueName) throws NoSuchQueueException {
+    public boolean deleteQueue(String queueName) throws NoSuchQueueException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call deleteQueue(?) }");
@@ -126,9 +120,7 @@ public class PostgresStore implements Store {
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -142,7 +134,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchQueueException
      */
     @Override
-    public boolean isQueueEmpty(String queueName) throws NoSuchQueueException {
+    public boolean isQueueEmpty(String queueName) throws NoSuchQueueException, SQLException {
         CallableStatement stmt = null;
         ResultSet rs = null;
         boolean result = false;
@@ -157,9 +149,7 @@ public class PostgresStore implements Store {
             if(e.getSQLState().equals("F0003")) { // No queue found with given handle
                 throw new NoSuchQueueException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(rs);
             StoreUtil.closeQuietly(stmt);
@@ -171,15 +161,13 @@ public class PostgresStore implements Store {
      * @return
      */
     @Override
-    public Queue[] queryForQueues() {
+    public Queue[] queryForQueues() throws SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call queryForQueues() }");
             return getQueues(stmt);
         } catch (SQLException e) {
-            // Can't gracefully handle exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -191,16 +179,14 @@ public class PostgresStore implements Store {
      * @return
      */
     @Override
-    public Queue[] queryForQueuesFromSender(int senderId) {
+    public Queue[] queryForQueuesFromSender(int senderId) throws SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call queryForQueuesFromSender(?) }");
             stmt.setInt(1, senderId);
             return getQueues(stmt);
         } catch (SQLException e) {
-            // Can't gracefully handle exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -245,7 +231,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchClientException
      */
     @Override
-    public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, NoSuchClientException {
+    public boolean enqueueMessage(String queueName, Message message) throws NoSuchQueueException, NoSuchClientException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call enqueueMessage(?, ?, ?, ?, ?) }");
@@ -261,9 +247,7 @@ public class PostgresStore implements Store {
             } else if (e.getSQLState().equals("F0001")) {
                 throw new NoSuchClientException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -277,7 +261,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchQueueException
      */
     @Override
-    public Message dequeueMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException {
+    public Message dequeueMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call dequeueMessage(?, ?) }");
@@ -290,9 +274,7 @@ public class PostgresStore implements Store {
             } else if (e.getSQLState().equals("F0001")) {
                 throw new NoSuchClientException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -308,7 +290,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchClientException
      */
     @Override
-    public Message dequeueMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException {
+    public Message dequeueMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call dequeueMessageFromSender(?, ?, ?) }");
@@ -322,9 +304,7 @@ public class PostgresStore implements Store {
             } else if (e.getSQLState().equals("F0001")) {
                 throw new NoSuchClientException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -337,7 +317,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchQueueException
      */
     @Override
-    public Message peekMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException {
+    public Message peekMessage(String queueName, int receiverId) throws NoSuchQueueException, NoSuchClientException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call peekMessage(?, ?) }");
@@ -350,9 +330,7 @@ public class PostgresStore implements Store {
             } else if (e.getSQLState().equals("F0001")) {
                 throw new NoSuchClientException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }
@@ -367,7 +345,7 @@ public class PostgresStore implements Store {
      * @throws NoSuchClientException
      */
     @Override
-    public Message peekMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException {
+    public Message peekMessageFromSender(String queueName, int senderId, int receiverId) throws NoSuchQueueException, NoSuchClientException, SQLException {
         CallableStatement stmt = null;
         try {
             stmt = _con.prepareCall("{ call peekMessageFromSender(?, ?, ?) }");
@@ -381,9 +359,7 @@ public class PostgresStore implements Store {
             } else if (e.getSQLState().equals("F0001")) {
                 throw new NoSuchClientException();
             }
-            // Can't gracefully handle other exceptions (e.g. missing database connection)
-            LOGGER.severe("Received unhandled SQL Exception", e);
-            throw new RuntimeException(e);
+            throw e;
         } finally {
             StoreUtil.closeQuietly(stmt);
         }

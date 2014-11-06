@@ -11,6 +11,7 @@ import ch.ventoo.flux.util.StringUtil;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 
 /**
  * Command to create a new queue with a given queue handle.
@@ -54,6 +55,9 @@ public class CreateQueueCommand extends Command {
         } catch (DuplicateQueueException e) {
             _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.DUPLICATE_QUEUE);
+        } catch (SQLException e) {
+            _manager.abortTransaction();
+            return new ResponseError(Protocol.ErrorCodes.DATABASE_ERROR);
         } finally {
             _manager.endConnectionScope();
         }

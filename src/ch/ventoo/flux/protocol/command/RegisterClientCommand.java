@@ -10,6 +10,7 @@ import ch.ventoo.flux.protocol.response.ResponseError;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 
 /**
  * Command to register a client at the message passing system.
@@ -51,6 +52,9 @@ public class RegisterClientCommand extends Command {
         } catch (DuplicateClientException e) {
             _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.CLIENT_WITH_ID_EXISTS);
+        } catch (SQLException e) {
+            _manager.abortTransaction();
+            return new ResponseError(Protocol.ErrorCodes.DATABASE_ERROR);
         } finally {
             _manager.endConnectionScope();
         }

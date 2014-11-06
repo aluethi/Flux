@@ -15,6 +15,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.sql.Date;
+import java.sql.SQLException;
 
 /**
  * Command to enqueue a new message into the message passing system.
@@ -91,6 +92,9 @@ public class EnqueueMessageCommand extends Command {
         } catch (NoSuchClientException e) {
             _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_CLIENT);
+        } catch (SQLException e) {
+            _manager.abortTransaction();
+            return new ResponseError(Protocol.ErrorCodes.DATABASE_ERROR);
         } finally {
             _manager.endConnectionScope();
         }

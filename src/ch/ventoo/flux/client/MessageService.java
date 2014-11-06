@@ -54,7 +54,6 @@ public class MessageService {
             if(response.getType() == Protocol.Responses.ACK) {
                 return true;
             } else {
-                LOGGER.warning("There was an unknown exception while executing Ping.");
                 throw new UnknownErrorException();
             }
         } catch (IOException e) {
@@ -81,7 +80,6 @@ public class MessageService {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.CLIENT_WITH_ID_EXISTS) {
                     throw new DuplicateClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing RegisterClient.");
                     throw new UnknownErrorException();
                 }
             }
@@ -110,7 +108,6 @@ public class MessageService {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
                     throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing DeregisterClient.");
                     throw new UnknownErrorException();
                 }
             }
@@ -140,7 +137,6 @@ public class MessageService {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.DUPLICATE_QUEUE) {
                     throw new DuplicateQueueException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing CreateQueue.");
                     throw new UnknownErrorException();
                 }
             }
@@ -170,7 +166,6 @@ public class MessageService {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing DeleteQueue.");
                     throw new UnknownErrorException();
                 }
             }
@@ -200,7 +195,6 @@ public class MessageService {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
                     throw new NoSuchQueueException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing IsQueueEmpty.");
                     throw new UnknownErrorException();
                 }
             }
@@ -225,7 +219,6 @@ public class MessageService {
             if(response.getType() == Protocol.Responses.QUEUES) {
                 return ((ResponseQueues)response).getQueues();
             } else {
-                LOGGER.warning("There was an unknown exception while executing QueryForQueues.");
                 throw new UnknownErrorException();
             }
         } catch (IOException e) {
@@ -249,7 +242,6 @@ public class MessageService {
             if(response.getType() == Protocol.Responses.QUEUES) {
                 return ((ResponseQueues)response).getQueues();
             } else {
-                LOGGER.warning("There was an unknown exception while executing QueryForQueuesFromSender.");
                 throw new UnknownErrorException();
             }
         } catch (IOException e) {
@@ -282,7 +274,6 @@ public class MessageService {
                 } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
                     throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing DequeueMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }
@@ -315,7 +306,6 @@ public class MessageService {
                 } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
                     throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing DequeueMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }
@@ -350,7 +340,6 @@ public class MessageService {
                 } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
                     throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing DequeueMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }
@@ -384,7 +373,6 @@ public class MessageService {
                 } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
                     throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing DequeueMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }
@@ -420,7 +408,6 @@ public class MessageService {
                 } else if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_CLIENT) {
                     throw new NoSuchClientException();
                 } else {
-                    LOGGER.warning("There was an unknown exception while executing PeekMessageFromSender.");
                     throw new UnknownErrorException();
                 }
             }

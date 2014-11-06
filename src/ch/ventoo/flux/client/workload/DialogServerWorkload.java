@@ -20,48 +20,30 @@ public class DialogServerWorkload extends Workload {
         if(args.length > 0) {
             loadSize = Integer.parseInt(args[0]);
         }
-        try {
-            int partnerId = service.getClientId() - 1;
-            service.register();
+        int partnerId = service.getClientId() - 1;
 
-            while(!isStopped()) {
-                try {
-                    Message m = service.dequeueMessage(QUEUE);
-                    if(m == Message.NO_MESSAGE) continue;
+        retryRegister(service);
 
-                    String[] parts = m.getContent().split("/");
+        while(!isStopped()) {
+            Message m = retryDequeueMessage(service, QUEUE);
 
-                    String[] splits = parts[0].split("-");
-                    splits[1] = String.valueOf(Integer.parseInt(splits[1]) + 1);
-                    parts[0] = splits[0] + "-" + splits[1];
+            String[] parts = m.getContent().split("/");
+            String[] splits = parts[0].split("-");
+            splits[1] = String.valueOf(Integer.parseInt(splits[1]) + 1);
+            parts[0] = splits[0] + "-" + splits[1];
 
-                    String content = "";
-                    if(parts.length > 1) {
-                        if (loadSize - parts[0].length() - 1 > 0) {
-                            parts[1] = generatePayload(loadSize - parts[0].length() - 1);
-                        }
-                        content = parts[0] + "/" + parts[1];
-                    } else {
-                        content = parts[0] + "/";
-                    }
-
-                    Message n = service.createDirectedMessage(partnerId, content);
-
-                    service.enqueueMessage(QUEUE, n);
-                } catch (NoSuchQueueException e) {
-                    try {
-                        service.createQueue(QUEUE);
-                    } catch (DuplicateQueueException e1) {
-                        /* ignore */
-                    }
-                } catch (NoSuchClientException e) {
-                    /* ignore */
+            String content = "";
+            if(parts.length > 1) {
+                if (loadSize - parts[0].length() - 1 > 0) {
+                    parts[1] = generatePayload(loadSize - parts[0].length() - 1);
                 }
+                content = parts[0] + "/" + parts[1];
+            } else {
+                content = parts[0] + "/";
             }
-        } catch (DuplicateClientException e) {
-            e.printStackTrace();
-        } catch (UnknownErrorException e) {
-            e.printStackTrace();
+
+            m = service.createDirectedMessage(partnerId, content);
+            retryEnqueueMessage(service, QUEUE, m);
         }
     }
 }

@@ -11,6 +11,7 @@ import ch.ventoo.flux.util.StringUtil;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 
 /**
  * Command to check whether a message queue is empty.
@@ -55,6 +56,9 @@ public class IsQueueEmptyCommand extends Command {
         } catch (NoSuchQueueException e) {
             _manager.abortTransaction();
             return new ResponseError(Protocol.ErrorCodes.NO_SUCH_QUEUE);
+        } catch (SQLException e) {
+            _manager.abortTransaction();
+            return new ResponseError(Protocol.ErrorCodes.DATABASE_ERROR);
         } finally {
             _manager.endConnectionScope();
         }
