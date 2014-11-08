@@ -28,6 +28,7 @@ public interface Protocol {
         int ERROR = 3;
         int BINARY = 4;
         int QUEUES = 5;
+        int NO_MESSAGE = 6;
     }
 
     public static interface ErrorCodes {

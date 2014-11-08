@@ -30,7 +30,7 @@ public class FluxClient {
     public FluxClient(int clientId, String host, int port, String experiment, String[] args) {
         BenchLogger log = new BenchLogger("client-" + clientId);
         _executor = new WorkloadExecutor(clientId, host, port, log);
-        _executor.executeExperiment(experiment, args);
+        _executor.executeWorkload(experiment, args);
     }
 
 }

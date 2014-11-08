@@ -15,12 +15,12 @@ public class WorkloadExecutor {
         _service = new MessageService(clientId, host, port, log);
     }
 
-    public void executeExperiment(String exp, String[] args) {
+    public void executeWorkload(String exp, String[] args) {
         try {
             String classPath = EXP_CLASS_PATH + exp;
             Class<?> cls = WorkloadExecutor.class.getClassLoader().loadClass(classPath);
             Workload experiment = (Workload) cls.newInstance();
-            executeExperiment(experiment, args);
+            executeWorkload(experiment, args);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InstantiationException e) {
@@ -30,7 +30,7 @@ public class WorkloadExecutor {
         }
     }
 
-    public void executeExperiment(Workload exp, String[] args) {
+    public void executeWorkload(Workload exp, String[] args) {
         _exp = exp;
         _exp.start(_service, args);
     }

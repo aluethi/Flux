@@ -1,30 +1,35 @@
 package ch.ventoo.flux.protocol.response;
 
+import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by nano on 04/11/14.
  */
 public class ResponseNoMessage implements Response {
 
-    ResponseNoMessage() {
+    public ResponseNoMessage() {
     }
 
     @Override
     public void initFromStream(DataInputStream stream) throws IOException {
-
+        // dummy method
+        // nothing to initialize here
     }
 
     @Override
     public int getType() {
-        return 0;
+        return Protocol.Responses.NO_MESSAGE;
     }
 
     @Override
     public byte[] getBody() {
-        return new byte[0];
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.putInt(getType());
+        return buffer.array();
     }
 }

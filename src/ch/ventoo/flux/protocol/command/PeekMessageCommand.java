@@ -9,6 +9,7 @@ import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.response.ResponseAck;
 import ch.ventoo.flux.protocol.response.ResponseError;
 import ch.ventoo.flux.protocol.response.ResponseMessage;
+import ch.ventoo.flux.protocol.response.ResponseNoMessage;
 import ch.ventoo.flux.util.StringUtil;
 
 import java.io.DataInputStream;
@@ -59,7 +60,7 @@ public class PeekMessageCommand extends Command {
             Message message = _manager.getStore().peekMessage(_queueHandle, _recieverId);
             _manager.endTransaction();
             if(message == Message.NO_MESSAGE) {
-                return new ResponseAck();
+                return new ResponseNoMessage();
             } else {
                 return new ResponseMessage(message);
             }

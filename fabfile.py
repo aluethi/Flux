@@ -9,7 +9,9 @@ env.user = 'ubuntu'
 env.key_filename = 'asl.pem'
 
 MW = 'ec2-54-195-230-49.eu-west-1.compute.amazonaws.com'
+MW2 = 'ec2-54-74-59-41.eu-west-1.compute.amazonaws.com'
 CL = 'ec2-54-75-172-171.eu-west-1.compute.amazonaws.com'
+CL2 = 'ec2-54-195-57-23.eu-west-1.compute.amazonaws.com'
 DB = 'ec2-54-170-179-1.eu-west-1.compute.amazonaws.com'
 
 ''' host definitions '''
@@ -17,8 +19,16 @@ def middleware():
   env.hosts = [MW]
 
 
+def middleware2():
+  env.hosts = [MW2]
+
+
 def client():
   env.hosts = [CL]
+
+
+def client2():
+  env.hosts = [CL2]
 
 
 def database():
@@ -114,6 +124,10 @@ def update_server():
   _deploy_server()
 
 
+def upload_server_config(experiment_id):
+  put('configs/%s-config.properties' % experiment_id, '~/var/config.properties')
+
+
 ''' experiment control methods '''
 def start_server():
   run('nohup java -jar ~/flux-server.jar &> out & disown; sleep 1')
@@ -146,6 +160,7 @@ def start_client_mixture(f1, f2, f3, middleware_ip=None, middleware_port=5555, m
   frac1 = int(f1)
   frac2 = int(f2)
   frac3 = int(f3)
+  message_size = int(message_size)
   _start_multiple_clients(frac1, 1, "OneWayClientWorkload", middleware_ip, middleware_port, message_size)
   _start_multiple_clients(frac2/2, frac1 + 100, "PoolClientWorkload", middleware_ip, middleware_port, message_size)
   _start_multiple_clients(frac2/2, frac1 + 100 + (frac2/2), "PoolServerWorkload", middleware_ip, middleware_port, message_size)
@@ -179,31 +194,34 @@ def get_server_logs(experiment_id):
   _copy_server_logs(experiment_id)
 
 
-def _copy_logs(experiment_id):
-  _copy_client_logs(experiment_id)
-  _copy_server_logs(experiment_id)
+def _process_logs(experiment_id):
+  if env.hosts == [MW]:
+    path = "log/%s/middleware/log/" % experiment_id
+    _snip_last_line(path)
+    local('cat log/%s/middleware/log/* | sort -n > log/%s/allmiddlewares.log' % (experiment_id, experiment_id))    
+  elif env.hosts == [CL]:
+    path = "log/%s/clients/log/" % experiment_id
+    _snip_last_line(path)
+    local('cat log/%s/clients/log/* | sort -n > log/%s/allclients.log' % (experiment_id, experiment_id))
 
-
-def _process_client_logs(experiment_id):
-  path = "log/%s/clients/" % experiment_id
+def _snip_last_line(path):
   files_in_dir = os.listdir(path)
   for file_in_dir in files_in_dir:
-    fin = open(path + "/" + file_in_dir)
+    fin = open(path + file_in_dir)
     lines = fin.readlines()
     fin.close()
     fout = open(path + "/" + file_in_dir, 'w')
     fout.writelines(lines[:-1])
     fout.close()
-  local('cat log/%s/clients/* | sort -n > log/%s/clients/allclients.log' % (experiment_id, experiment_id))
-
 
 def get_logs():
   _copy_logs()
   _process_client_logs()
 
 
-def _process_logs():
-  pass
+def pre_process_logs(experiment_id):
+  _process_logs(experiment_id)
+
 
 def clean_db():
   _truncate_db("flux")
