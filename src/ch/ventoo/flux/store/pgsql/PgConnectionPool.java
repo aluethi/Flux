@@ -41,15 +41,23 @@ public class PgConnectionPool {
      * Returns a connection to the database.
      * @return
      */
-    public synchronized Connection getConnection() {
+    public Connection getConnection() {
         Connection con = null;
-        try {
-            con = _source.getConnection();
-        } catch (SQLException e) {
-            LOGGER.severe("Could not retrieve connection from the connection pool.");
-            throw new RuntimeException(e);
+        while(true) {
+            try {
+                synchronized (this) {
+                    con = _source.getConnection();
+                }
+                return con;
+            } catch (SQLException e) {
+                LOGGER.warning("Could not retrieve connection from the connection pool. Will retry.");
+                try {
+                    wait(50);
+                } catch (InterruptedException e1) {
+                    LOGGER.warning("Thread has been interrupted.");
+                }
+            }
         }
-        return con;
     }
 
 }

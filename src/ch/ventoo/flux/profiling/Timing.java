@@ -62,12 +62,20 @@ public class Timing {
         _regions[_regions.length - 2] = cmd.getType();
     }
 
+    public void setCommand(int cmd) {
+        _regions[_regions.length - 2] = cmd;
+    }
+
     /**
      * Registers a response type (used for client benchmark logging).
      * @param response
      */
     public void setResponse(Response response) {
         _regions[_regions.length - 1] = response.getType();
+    }
+
+    public void setResponse(int response) {
+        _regions[_regions.length - 1] = response;
     }
 
 }

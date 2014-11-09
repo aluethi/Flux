@@ -9,9 +9,9 @@ env.user = 'ubuntu'
 env.key_filename = 'asl.pem'
 
 MW = 'ec2-54-195-230-49.eu-west-1.compute.amazonaws.com'
-MW2 = 'ec2-54-74-59-41.eu-west-1.compute.amazonaws.com'
+MW2 = 'ec2-54-170-130-125.eu-west-1.compute.amazonaws.com'
 CL = 'ec2-54-75-172-171.eu-west-1.compute.amazonaws.com'
-CL2 = 'ec2-54-195-57-23.eu-west-1.compute.amazonaws.com'
+CL2 = 'ec2-54-74-82-87.eu-west-1.compute.amazonaws.com'
 DB = 'ec2-54-170-179-1.eu-west-1.compute.amazonaws.com'
 
 ''' host definitions '''
@@ -156,15 +156,16 @@ def _start_multiple_dialog_clients(count, id_offset, middleware_ip=None, middlew
     _start_dialog_clients(id_offset + i, middleware_ip, middleware_port, message_size)
 
 
-def start_client_mixture(f1, f2, f3, middleware_ip=None, middleware_port=5555, message_size=0):
+def start_client_mixture(f1, f2, f3, add_offset=0, middleware_ip=None, middleware_port=5555, message_size=0):
   frac1 = int(f1)
   frac2 = int(f2)
   frac3 = int(f3)
   message_size = int(message_size)
-  _start_multiple_clients(frac1, 1, "OneWayClientWorkload", middleware_ip, middleware_port, message_size)
-  _start_multiple_clients(frac2/2, frac1 + 100, "PoolClientWorkload", middleware_ip, middleware_port, message_size)
-  _start_multiple_clients(frac2/2, frac1 + 100 + (frac2/2), "PoolServerWorkload", middleware_ip, middleware_port, message_size)
-  _start_multiple_dialog_clients(frac3, frac1 + frac2 + 200, middleware_ip, middleware_port, message_size)
+  add_offset = int(add_offset)
+  _start_multiple_clients(frac1, 1 + add_offset, "OneWayClientWorkload", middleware_ip, middleware_port, message_size)
+  _start_multiple_clients(frac2/2, frac1 + 100 + add_offset, "PoolClientWorkload", middleware_ip, middleware_port, message_size)
+  _start_multiple_clients(frac2/2, frac1 + 100 + (frac2/2) + add_offset, "PoolServerWorkload", middleware_ip, middleware_port, message_size)
+  _start_multiple_dialog_clients(frac3, frac1 + frac2 + 200 + add_offset, middleware_ip, middleware_port, message_size)
 
 
 ''' client stop methods '''

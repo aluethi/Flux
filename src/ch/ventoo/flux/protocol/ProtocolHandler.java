@@ -103,6 +103,8 @@ public class ProtocolHandler {
                     Response queues = new ResponseQueues();
                     queues.initFromStream(stream);
                     return queues;
+                case Protocol.Responses.NO_MESSAGE:
+                    return new ResponseNoMessage();
                 default:
                     LOGGER.warning("Received an illegal response.");
                     return null;

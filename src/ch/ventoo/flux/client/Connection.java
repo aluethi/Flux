@@ -4,6 +4,7 @@ import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.profiling.LogWrapper;
 import ch.ventoo.flux.profiling.Timing;
 import ch.ventoo.flux.protocol.Command;
+import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.ProtocolHandler;
 import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.transport.Frame;

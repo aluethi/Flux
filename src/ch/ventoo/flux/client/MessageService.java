@@ -5,6 +5,7 @@ import ch.ventoo.flux.model.Message;
 import ch.ventoo.flux.model.Queue;
 import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.profiling.LogWrapper;
+import ch.ventoo.flux.profiling.Timing;
 import ch.ventoo.flux.protocol.Protocol;
 import ch.ventoo.flux.protocol.Response;
 import ch.ventoo.flux.protocol.command.*;
@@ -298,7 +299,7 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
-            } else if (response.getType() == Protocol.Responses.ACK) {
+            } else if (response.getType() == Protocol.Responses.NO_MESSAGE) {
                 return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
@@ -332,7 +333,7 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
-            } else if (response.getType() == Protocol.Responses.ACK) {
+            } else if (response.getType() == Protocol.Responses.NO_MESSAGE) {
                 return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
@@ -365,7 +366,7 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
-            } else if (response.getType() == Protocol.Responses.ACK) {
+            } else if (response.getType() == Protocol.Responses.NO_MESSAGE) {
                 return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {
@@ -400,7 +401,7 @@ public class MessageService {
 
             if(response.getType() == Protocol.Responses.MESSAGE) {
                 return (((ResponseMessage)response).getMessage());
-            } else if (response.getType() == Protocol.Responses.ACK) {
+            } else if (response.getType() == Protocol.Responses.NO_MESSAGE) {
                 return Message.NO_MESSAGE;
             } else {
                 if(((ResponseError)response).getErrorCode() == Protocol.ErrorCodes.NO_SUCH_QUEUE) {

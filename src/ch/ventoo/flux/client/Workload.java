@@ -2,7 +2,10 @@ package ch.ventoo.flux.client;
 
 import ch.ventoo.flux.exception.*;
 import ch.ventoo.flux.model.Message;
+import ch.ventoo.flux.profiling.BenchLogger;
 import ch.ventoo.flux.profiling.LogWrapper;
+import ch.ventoo.flux.profiling.Timing;
+import ch.ventoo.flux.protocol.Protocol;
 
 /**
  * Created by nano on 02/11/14.
@@ -14,6 +17,11 @@ public abstract class Workload {
     private boolean _stopped = false;
     private String _cachedPad = null;
     private int _cachedSize = 0;
+    private final Timing _timer;
+
+    public Workload(BenchLogger log) {
+        _timer = new Timing(log);
+    }
 
     public abstract void start(MessageService service, String[] args);
 
@@ -38,9 +46,14 @@ public abstract class Workload {
     }
 
     public void retryRegister(MessageService service) {
+
+        _timer.setCommand(Protocol.Actions.REGISTER);
+        _timer.enterRegion(Timing.Region.DATABASE);
         while(true) {
             try {
                 service.register();
+                _timer.enterRegion(Timing.Region.WAITING);
+                _timer.setResponse(Protocol.Responses.ACK);
                 break;
             } catch (DuplicateClientException e) {
                 LOGGER.severe("Client with this ID already registered.");
@@ -52,9 +65,13 @@ public abstract class Workload {
     }
 
     public void retryCreateQueue(MessageService service, String queueHandle) {
+        _timer.setCommand(Protocol.Actions.CREATE_QUEUE);
+        _timer.enterRegion(Timing.Region.DATABASE);
         while(true) {
             try {
                 service.createQueue(queueHandle);
+                _timer.enterRegion(Timing.Region.WAITING);
+                _timer.setResponse(Protocol.Responses.ACK);
                 break;
             } catch (DuplicateQueueException e) {
                 break;
@@ -65,9 +82,13 @@ public abstract class Workload {
     }
 
     public void retryEnqueueMessage(MessageService service, String queueHandle, Message m) {
+        _timer.setCommand(Protocol.Actions.ENQUEUE_MESSAGE);
+        _timer.enterRegion(Timing.Region.DATABASE);
         while(true) {
             try {
                 service.enqueueMessage(queueHandle, m);
+                _timer.enterRegion(Timing.Region.WAITING);
+                _timer.setResponse(Protocol.Responses.ACK);
                 break;
             } catch (NoSuchQueueException e) {
                 /* ignore & retry */
@@ -81,11 +102,15 @@ public abstract class Workload {
     }
 
     public Message retryDequeueMessage(MessageService service, String queueHandle) {
+        _timer.setCommand(Protocol.Actions.DEQUEUE_MESSAGE);
+        _timer.enterRegion(Timing.Region.DATABASE);
         while(true) {
             try {
                 Message m = service.dequeueMessage(queueHandle);
                 if (m == Message.NO_MESSAGE)
                     continue;
+                _timer.enterRegion(Timing.Region.WAITING);
+                _timer.setResponse(Protocol.Responses.MESSAGE);
                 return m;
             } catch (NoSuchQueueException e) {
                 /* ignore & retry */
